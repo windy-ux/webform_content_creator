@@ -1,6 +1,7 @@
 name: Webform Content Creator
 type: module
 description: Allows you to create nodes and do mappings between respective fields and webform submission values.
+version: '8.x-1.x-dev'
 core: 8.x
 package: Webform
 configure: webform_content_creator.collection
