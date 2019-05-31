@@ -95,12 +95,15 @@ class WebformContentCreatorForm extends EntityForm {
       '#options' => $encryptionProfiles_formatted,
       '#default_value' => $this->entity->getEncryptionProfile(),
       '#description' => $this->t("Encryption profile name"),
-      '#required' => TRUE,
       '#states' => [
         'visible' =>
           [
           ':input[name="use_encrypt"]' => ['checked' => true],
-        ],
+          ],
+        'required' =>
+          [
+          ':input[name="use_encrypt"]' => ['checked' => true],
+          ],          
       ],
     ];
 
