@@ -80,4 +80,4 @@
     });
   
   });
-})(jQuery, Drupal, drupalSettings);
+})(jQuery, Drupal);

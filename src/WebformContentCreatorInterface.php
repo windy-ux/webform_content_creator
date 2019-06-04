@@ -8,6 +8,25 @@ use Drupal\Core\Config\Entity\ConfigEntityInterface;
  * Provides an interface defining an Webform content creator entity.
  */
 interface WebformContentCreatorInterface extends ConfigEntityInterface {
+  const WEBFORM = 'webform';
+
+  const WEBFORM_CONTENT_CREATOR = 'webform_content_creator';
+  
+  const FIELD_TITLE = 'field_title';
+
+  const WEBFORM_FIELD = 'webform_field';
+
+  const CUSTOM_CHECK = 'custom_check';
+
+  const CUSTOM_VALUE = 'custom_value';
+
+  const ELEMENTS = 'elements';
+
+  const TYPE = 'type';
+
+  const USE_ENCRYPT = 'use_encrypt';
+
+  const ENCRYPTION_PROFILE = 'encryption_profile';
 
   /**
    * Returns the entity title.

@@ -14,6 +14,18 @@ use Drupal\webform_content_creator\WebformContentCreatorUtilities;
  */
 class WebformContentCreatorManageFieldsForm extends EntityForm {
 
+  const CONTENT_TYPE_FIELD = 'content_type_field';
+
+  const FIELD_TYPE = 'field_type';
+
+  const WEBFORM_FIELD = 'webform_field';
+
+  const CUSTOM_CHECK = 'custom_check';
+
+  const CUSTOM_VALUE = 'custom_value';
+
+  const FORM_TABLE = 'table';
+
   /**
    * Constructs an WebformContentCreatorForm object.
    *
@@ -42,12 +54,12 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
       '#title' => $this->t('Title'),
       '#maxlength' => 255,
       '#default_value' => $this->entity->get('field_title'),
-      '#help' => 'Title of content created after webform submission. You may use tokens.',
+      '#help' => $this->t('Title of content created after webform submission. You may use tokens.'),
       '#description' => $this->t("Default value: webform title."),
       '#weight' => 0,
     ];
     $form['intro_text'] = [
-      '#markup' => '<p>' . t('You can create nodes based on webform submission values. In this page, you can do mappings between content type fields and webform submission values. You may also use tokens in custom text.') . '</p>',
+      '#markup' => '<p>' . $this->t('You can create nodes based on webform submission values. In this page, you can do mappings between content type fields and webform submission values. You may also use tokens in custom text.') . '</p>',
     ];
     $form['tokens'] = [
       '#theme' => 'token_tree_link',
@@ -56,7 +68,7 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
       '#click_insert' => TRUE,
       '#show_restricted' => FALSE,
       '#recursion_limit' => 3,
-      '#text' => t('Browse available tokens'),
+      '#text' => $this->t('Browse available tokens'),
     ];
     // construct table with mapping between content type fields and webform elements
     $this->constructTable($form);
@@ -80,75 +92,75 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
 
     // table header
     $header = array(
-      'content_type_field' => t('Content type field'),
-      'field_type' => t('Field type'),
-      'custom_check' => t('Custom'),
-      'webform_field' => t('Webform field'),
-      'custom_value' => t('Custom text'),
+      self::CONTENT_TYPE_FIELD => $this->t('Content type field'),
+      self::FIELD_TYPE => $this->t('Field type'),
+      self::CUSTOM_CHECK => $this->t('Custom'),
+      self::WEBFORM_FIELD => $this->t('Webform field'),
+      self::CUSTOM_VALUE => $this->t('Custom text'),
     );
-    $form['table'] = [
+    $form[self::FORM_TABLE] = [
       '#type' => 'table',
       '#header' => $header,
     ];
 
-    foreach ($nodeFilteredFieldIds as $k2 => $v2) {
+    foreach ($nodeFilteredFieldIds as $fieldId) {
       $route_parameters = [
         'node_type' => 'exposition',
-        'field_config' => 'node.' . $ct . '.' . $v2,
+        'field_config' => 'node.' . $ct . '.' . $fieldId,
       ];
 
       //checkboxes with content type fields
-      $form['table'][$v2]['content_type_field'] = [
+      $form[self::FORM_TABLE][$fieldId][self::CONTENT_TYPE_FIELD] = [
         '#type' => 'checkbox',
-        '#default_value' => array_key_exists($v2, $attributes),
-        '#title' => $nodeFields[$v2]->getLabel() . ' (' . $v2 . ')',
+        '#default_value' => array_key_exists($fieldId, $attributes),
+        '#title' => $nodeFields[$fieldId]->getLabel() . ' (' . $fieldId . ')',
       ];
 
       //link to edit field settings
-      $form['table'][$v2]['field_type'] = [
+      $form[self::FORM_TABLE][$fieldId][self::FIELD_TYPE] = [
         '#type' => 'link',
-        '#title' => $fieldTypesDefinitions[$nodeFields[$v2]->getType()]['label'],
+        '#title' => $fieldTypesDefinitions[$nodeFields[$fieldId]->getType()]['label'],
         '#url' => Url::fromRoute("entity.field_config.node_storage_edit_form", $route_parameters),
         '#options' => ['attributes' => ['title' => $this->t('Edit field settings.')]],
       ];
 
       //checkbox to select between webform element/property or custom text
-      $form['table'][$v2]['custom_check'] = [
+      $form[self::FORM_TABLE][$fieldId][self::CUSTOM_CHECK] = [
         '#type' => 'checkbox',
-        '#default_value' => array_key_exists($v2, $attributes) ? $attributes[$v2]['custom_check'] : '',
+        '#default_value' => array_key_exists($fieldId, $attributes) ? $attributes[$fieldId][self::CUSTOM_CHECK] : '',
         '#states' => [
           'disabled' => [
-            ':input[name="table[' . $v2 . '][content_type_field]"]' => ['checked' => false],
+            ':input[name="'. self::FORM_TABLE . '[' . $fieldId . '][' . self::CONTENT_TYPE_FIELD . ']"]' => ['checked' => false],
           ],
         ],
       ];
 
-      $type = !empty($attributes[$v2]) && $attributes[$v2]['type'] ? '1' : '0';
+      $type = !empty($attributes[$fieldId]) && $attributes[$fieldId]['type'] ? '1' : '0';
       //select with webform elements and basic properties
-      $form['table'][$v2]['webform_field'] = [
+      $form[self::FORM_TABLE][$fieldId][self::WEBFORM_FIELD] = [
         '#type' => 'select',
         '#options' => $webformOptions,
         '#states' => [
           'required' => [
-            ':input[name="table[' . $v2 . '][content_type_field]"]' => ['checked' => true],
-            ':input[name="table[' . $v2 . '][custom_check]"]' => ['checked' => false],
+            ':input[name="'. self::FORM_TABLE . '[' . $fieldId . '][' . self::CONTENT_TYPE_FIELD . ']"]' => ['checked' => true],
+            ':input[name="'. self::FORM_TABLE . '[' . $fieldId . '][' . self::CUSTOM_CHECK . ']"]' => ['checked' => false],
           ],
         ],
       ];
 
-      if (array_key_exists($v2, $attributes) && !$attributes[$v2]['custom_check']) {
-        $form['table'][$v2]['webform_field']['#default_value'] = $type . ',' . $attributes[$v2]['webform_field'];
+      if (array_key_exists($fieldId, $attributes) && !$attributes[$fieldId][self::CUSTOM_CHECK]) {
+        $form[self::FORM_TABLE][$fieldId][self::WEBFORM_FIELD]['#default_value'] = $type . ',' . $attributes[$fieldId][self::WEBFORM_FIELD];
       }
 
       // textfield with custom text (including tokens)
-      $form['table'][$v2]['custom_value'] = ['#type' => 'textfield',
-        '#default_value' => array_key_exists($v2, $attributes) ? $attributes[$v2]['custom_value'] : '',
+      $form[self::FORM_TABLE][$fieldId][self::CUSTOM_VALUE] = ['#type' => 'textfield',
+        '#default_value' => array_key_exists($fieldId, $attributes) ? $attributes[$fieldId][self::CUSTOM_VALUE] : '',
         '#size' => 35,
       ];
     }
 
     // change table position in page
-    $form['table']['#weight'] = 1;
+    $form[self::FORM_TABLE]['#weight'] = 1;
   }
 
   /**
@@ -161,11 +173,11 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
     $nodeFields = WebformContentCreatorUtilities::contentTypeFields($contentType);
     $webform_id = $this->entity->getWebform();
     $webformElementTypes = WebformContentCreatorUtilities::getWebformElementsTypes($webform_id);
-    foreach ($form_state->getValue('table') as $k => $v) { // for each table row
-      if (!$v["content_type_field"]) { // check if a content type field is selected
+    foreach ($form_state->getValue(self::FORM_TABLE) as $k => $v) { // for each table row
+      if (!$v[self::CONTENT_TYPE_FIELD]) { // check if a content type field is selected
         continue;
       }
-      $args = explode(',', $v["webform_field"]);
+      $args = explode(',', $v[self::WEBFORM_FIELD]);
       if (empty($args) || count($args) < 1) {
         continue;
       }
@@ -177,11 +189,11 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
       }
 
       if ($nodeFieldType === 'email') {
-        $form_state->setErrorByName('table][' . $k . '][webform_field', t('Incompatible type'));
+        $form_state->setErrorByName(self::FORM_TABLE . '][' . $k . '][' . self::WEBFORM_FIELD, t('Incompatible type'));
       }
 
       if ($webformOptionType === 'email' && (strpos($nodeFieldType, 'text') === false) && (strpos($nodeFieldType, 'string') === false)) {
-        $form_state->setErrorByName('table][' . $k . '][webform_field', t('Incompatible type'));
+        $form_state->setErrorByName(self::FORM_TABLE . '][' . $k . '][' . self::WEBFORM_FIELD, t('Incompatible type'));
       }
     }
   }
@@ -191,20 +203,20 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $attributes = [];
-    foreach ($form_state->getValue('table') as $k => $v) { // for each table row
-      if (!$v["content_type_field"]) { // check if a content type field is selected
+    foreach ($form_state->getValue(self::FORM_TABLE) as $k => $v) { // for each table row
+      if (!$v[self::CONTENT_TYPE_FIELD]) { // check if a content type field is selected
         continue;
       }
-      $args = explode(',', $v["webform_field"]);
+      $args = explode(',', $v[self::WEBFORM_FIELD]);
       if (empty($args) || count($args) < 1) {
         continue;
       }
 
       $attributes[$k] = [
-        'type' => explode(',', $v["webform_field"])[0] === '1' ? true : false,
-        'webform_field' => !$v["custom_check"] ? explode(',', $v["webform_field"])[1] : '',
-        'custom_check' => $v["custom_check"],
-        'custom_value' => $v["custom_check"] ? $v["custom_value"] : '',
+        'type' => explode(',', $v[self::WEBFORM_FIELD])[0] === '1',
+        self::WEBFORM_FIELD => !$v[self::CUSTOM_CHECK] ? explode(',', $v[self::WEBFORM_FIELD])[1] : '',
+        self::CUSTOM_CHECK => $v[self::CUSTOM_CHECK],
+        self::CUSTOM_VALUE => $v[self::CUSTOM_CHECK] ? $v[self::CUSTOM_VALUE] : '',
       ];
     }
 

@@ -2,6 +2,8 @@
 
 namespace Drupal\webform_content_creator\Entity;
 
+use Drupal\webform\WebformSubmissionInterface;
+use Drupal\node\NodeInterface;
 use Drupal\node\Entity\Node;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\webform_content_creator\WebformContentCreatorInterface;
@@ -88,7 +90,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    *   The entity attributes mapping.
    */
   public function getAttributes() {
-    return $this->get('elements');
+    return $this->get(WebformContentCreatorInterface::ELEMENTS);
   }
 
   /**
@@ -98,7 +100,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    *   true, when an encryption profile is used. Otherwise, returns false.
    */
   public function getEncryptionCheck() {
-    return $this->get('use_encrypt');
+    return $this->get(WebformContentCreatorInterface::USE_ENCRYPT);
   }
 
   /**
@@ -108,7 +110,96 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    *   The encryption profile name.
    */
   public function getEncryptionProfile() {
-    return $this->get('encryption_profile');
+    return $this->get(WebformContentCreatorInterface::ENCRYPTION_PROFILE);
+  }
+
+  /**
+   * Get node title.
+   * 
+   * @return string Node title
+   */
+  private function getNodeTitle() {
+    // get title
+    if ($this->get(WebformContentCreatorInterface::FIELD_TITLE) !== null && $this->get(WebformContentCreatorInterface::FIELD_TITLE) !== '') {
+      $nodeTitle = $this->get(WebformContentCreatorInterface::FIELD_TITLE);
+    } else {
+      $nodeTitle = \Drupal::entityTypeManager()->getStorage(WebformContentCreatorInterface::WEBFORM)->load($this->get(WebformContentCreatorInterface::WEBFORM))->label();
+    }
+
+    return $nodeTitle;
+  }
+
+  /**
+   * Get encryption profile name.
+   * 
+   * @return string Encryption profile name.
+   */
+  private function getProfileName() {
+    $encryptionProfile = '';
+    $useEncrypt = $this->get(WebformContentCreatorInterface::USE_ENCRYPT);
+    if ($useEncrypt) {
+      $encryptionProfile = \Drupal::service('entity.manager')->getStorage(WebformContentCreatorInterface::ENCRYPTION_PROFILE)->load($this->getEncryptionProfile());
+    }
+
+    return $encryptionProfile;
+  }
+
+  /**
+   * Get decrypted value with encryption profile associated with the Webform Content Creator entity.
+   * 
+   * @param string $value Encrypted value
+   * @return string $encryptionProfile Encryption profile used to encrypt/decrypt $value
+   */
+  private function getDecryptionFromProfile($value, $encryptionProfile = '') {
+    if ($this->getEncryptionCheck()) {
+      $decValue = WebformContentCreatorUtilities::getDecryptedValue($value, $encryptionProfile);
+    } else {
+      $decValue = $value;
+    }
+    return $decValue;
+  }
+  
+  /**
+   * Use a single mapping (node field-webform submission value) to set a Node field value.
+   * 
+   * @param NodeInterface $initialContent Content being mapped with a webform submission
+   * @param WebformSubmissionInterface $webform_submission Webform submission entity
+   * @param array $fields Node fields
+   * @param array $data Webform submission data
+   * @param string $encryptionProfile Encryption profile used in Webform encrypt module
+   * @param string $fieldId Node field id
+   * @param array $mapping Webform Content Creator attribute with the mapping Node field - Webform submission value
+   * @param array $attributes Webform Content Creator attributes with all mappings between Node fields and Webform submission values
+   * @return NodeInterface Node
+   */
+  private function mapNodeField(NodeInterface $initialContent, $webform_submission = [], $fields = [], $data = [], $encryptionProfile = '', $fieldId = '', $mapping = [], $attributes = []) {
+    $content = $initialContent;
+    if (!$content->hasField($fieldId) || !is_array($mapping)) {
+      return $content;
+    }
+    if ($attributes[$fieldId][WebformContentCreatorInterface::CUSTOM_CHECK]) { // custom text
+      // use Drupal tokens to fill the field
+      $decValue = WebformContentCreatorUtilities::getDecryptedTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryptionProfile, $webform_submission);
+    } else {		
+      if (!$attributes[$fieldId][WebformContentCreatorInterface::TYPE]) { // webform element
+        if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
+          return $content;
+        }
+        $decValue = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
+      } else { // webform basic property
+        $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
+      }
+    }
+
+    // check if field's max length is exceeded
+    $maxLength = $this->checkMaxFieldSizeExceeded($fields, $fieldId, $decValue);
+    if ($maxLength === 0) {
+      $content->set($fieldId, $decValue);
+    } else {
+      $content->set($fieldId, substr($decValue, 0, $maxLength));
+    }
+
+    return $content;
   }
 
   /**
@@ -117,36 +208,27 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    * @param WebformSubmission entity $webform_submission Webform submission
    */
   public function createNode($webform_submission) {
-    // get title
-    if ($this->get('field_title') !== null && $this->get('field_title') !== '') {
-      $title = $this->get('field_title');
-    } else {
-      $title = \Drupal::entityTypeManager()->getStorage('webform')->load($this->get('webform'))->label();
-    }
+    $nodeTitle = $this->getNodeTitle();
 
     // get webform submission data
     $data = $webform_submission->getData();
     if (empty($data)) {
       return 0;
     }
-    // get encryption profile
-    $use_encrypt = $this->get('use_encrypt');
-    if ($use_encrypt) {
-      $encryption_profile_name = $this->get('encryption_profile');
-      $encryption_profile = \Drupal::service('entity.manager')->getStorage('encryption_profile')->load($encryption_profile_name);
-    }
+
+    $encryptionProfile = $this->getProfileName();
 
     // decrypt title
-    $decrypted_title = WebformContentCreatorUtilities::getDecryptedTokenValue($title, $encryption_profile, $webform_submission);
+    $decrypted_title = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
 
     //create new node
     $content = Node::create([
-          'type' => $this->getContentType(),
+      WebformContentCreatorInterface::TYPE => $this->getContentType(),
           'title' => $decrypted_title
     ]);
 
     // set node fields values
-    $attributes = $this->get('elements');
+    $attributes = $this->get(WebformContentCreatorInterface::ELEMENTS);
 
     $contentType = \Drupal::entityTypeManager()->getStorage('node_type')->load($this->getContentType());
     if (empty($contentType)) {
@@ -158,44 +240,17 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       return false;
     }
     foreach ($attributes as $k2 => $v2) {
-      if (!$content->hasField($k2)) { // check if node has the field
-        continue;
-      }
-      if (!is_array($v2)) {
-          continue;
-      }
-      if ($attributes[$k2]['custom_check']) { // custom text
-        // use Drupal tokens to fill the field
-        $decValue = WebformContentCreatorUtilities::getDecryptedTokenValue($v2['custom_value'], $encryption_profile, $webform_submission);
-      } else {		
-        if (!$attributes[$k2]['type']) { // webform element
-          if (!array_key_exists('webform_field',$v2) || !array_key_exists($v2['webform_field'],$data)) {
-            continue;
-      	  }
-          if ($use_encrypt) {
-            $decValue = WebformContentCreatorUtilities::getDecryptedValue($data[$v2['webform_field']], $encryption_profile);
-          } else {
-            $decValue = $data[$v2['webform_field']];
-          }
-        } else { // webform basic property
-          $decValue = $webform_submission->{$v2['webform_field']}->value;
-        }
-      }
-
-      // check if field's max length is exceeded	  
-      if ($this->checkMaxFieldSizeExceeded($fields,$k2,$decValue) !== 1) {
-        $content->set($k2, $decValue);
-      } else {
-        $content->set($k2, substr($decValue, 0, $maxLength));
-      }
+      $content = $this->mapNodeField($content, $webform_submission, $fields, $data, $encryptionProfile, $k2, $v2, $attributes);
     }
 
+    $result = false;
+    
     // save node
     try {
       $result = $content->save();
     } catch (\Exception $e) {
-      \Drupal::logger('webform_content_creator')->error(t('A problem occurred when creating a new node.'));
-      \Drupal::logger('webform_content_creator')->error($e->getMessage());
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error(t('A problem occurred when creating a new node.'));
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
     return $result;
   }
@@ -206,8 +261,8 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    * @return boolean true, if content type entity exists. Otherwise, returns false.
    */
   public function existsContentType() {
-    $content_type = $this->getContentType(); // get content type id
-    $content_type_entity = \Drupal::entityTypeManager()->getStorage('node_type')->load($content_type); // get content type entity
+    $content_type_id = $this->getContentType(); // get content type id
+    $content_type_entity = \Drupal::entityTypeManager()->getStorage('node_type')->load($content_type_id); // get content type entity
     if (!empty($content_type_entity)) {
       return true;
     }
@@ -261,24 +316,23 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    * @param string $decValue Decrypted value
    * @return int 1 if maximum size is exceeded, otherwise return 0.
    */
-  public function checkMaxFieldSizeExceeded($fields, $k, $decValue="") {
+  public function checkMaxFieldSizeExceeded($fields, $k, $decValue = "") {
     if (!array_key_exists($k, $fields) || empty($fields[$k])) {
       return 0;
     }  
     $fieldSettings = $fields[$k]->getSettings();
-    if (empty($fieldSettings)) {
-      return 0;  
+    if (empty($fieldSettings) || !array_key_exists('max_length', $fieldSettings)) {
+      return 0;
     }  
-    if (!array_key_exists('max_length', $fieldSettings)) {
-      return 0;	  
-    }
+
     $maxLength = $fieldSettings['max_length'];
     if (empty($maxLength)) {
       return 0;
     }
     if ($maxLength < strlen($decValue)) {
-      \Drupal::logger('webform_content_creator')->notice(t('Problem: Field\'s max length exceeded (truncated).'));
-      return 1;
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->notice(t('Problem: Field\'s max length exceeded (truncated).'));
+      return $maxLength;
     }
+    return strlen($decValue);
   }
 }
