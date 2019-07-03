@@ -180,6 +180,9 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     if ($attributes[$fieldId][WebformContentCreatorInterface::CUSTOM_CHECK]) { // custom text
       // use Drupal tokens to fill the field
       $decValue = WebformContentCreatorUtilities::getDecryptedTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryptionProfile, $webform_submission);
+      if($decValue === 'true' || $decValue === 'TRUE') {
+        $decValue = TRUE;
+      }
     } else {		
       if (!$attributes[$fieldId][WebformContentCreatorInterface::TYPE]) { // webform element
         if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {

@@ -86,6 +86,7 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
     $ct = $this->entity->getContentType();
     $contentType = \Drupal::entityTypeManager()->getStorage('node_type')->load($ct);
     $nodeFilteredFieldIds = WebformContentCreatorUtilities::getContentFieldsIds($contentType);
+    asort($nodeFilteredFieldIds);
     $nodeFields = WebformContentCreatorUtilities::contentTypeFields($contentType);
     $webform_id = $this->entity->getWebform();
     $webformOptions = WebformContentCreatorUtilities::getWebformElements($webform_id);

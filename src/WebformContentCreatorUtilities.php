@@ -33,7 +33,7 @@ class WebformContentCreatorUtilities {
           $wizardPage = html_entity_decode($title);
           unset($aux);
           $flag ++;
-          continue;        
+          continue;
         }
 
         foreach ($aux as $k2 => $v2) {
@@ -146,8 +146,8 @@ class WebformContentCreatorUtilities {
   public static function getContentFieldsIds($contentType) {
     $nodeFields = self::contentTypeFields($contentType);
     $nodeFieldIds = array_keys($nodeFields);
-    return array_filter($nodeFieldIds, function($fid) {
-      return strpos($fid, 'field_') === 0 || strcmp($fid, 'body') === 0;
+    return array_filter($nodeFieldIds, function ($fid) {
+      return strpos($fid, 'field_') === 0 || strcmp($fid, 'body') === 0 || strcmp($fid, 'status') === 0;
     });
   }
 
