@@ -64,6 +64,18 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
+   * Sets the entity title.
+   *
+   * @param string $title Node title
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setTitle($title) {
+    $this->set('title', $title);
+    return $this;
+  }
+  
+  /**
    * Returns the entity content type id.
    *
    * @return string
@@ -74,6 +86,18 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
+   * Sets the content type entity.
+   *
+   * @param string $contentType Content type entity
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setContentType($contentType) {
+    $this->set('content_type', $contentType);
+    return $this;
+  }
+  
+  /**
    * Returns the entity webform id.
    *
    * @return string
@@ -81,6 +105,18 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    */
   public function getWebform() {
     return $this->get('webform');
+  }
+
+  /**
+   * Sets the entity webform id.
+   *
+   * @param string $webform Webform id
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setWebform($webform) {
+    $this->set('webform', $webform);
+    return $this;
   }
 
   /**
