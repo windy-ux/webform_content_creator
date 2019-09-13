@@ -37,6 +37,15 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function getTitle();
 
   /**
+   * Sets the entity title.
+   *
+   * @param string $title Node title
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setTitle($title);
+  
+  /**
    * Returns the entity content type id.
    *
    * @return string
@@ -45,6 +54,15 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function getContentType();
 
   /**
+   * Sets the content type entity.
+   *
+   * @param string $contentType Content type entity
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setContentType($contentType);
+  
+  /**
    * Returns the entity webform id.
    *
    * @return string
@@ -52,6 +70,15 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
    */
   public function getWebform();
 
+  /**
+   * Sets the entity webform id.
+   *
+   * @param string $webform Webform id
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setWebform($webform);
+  
   /**
    * Returns the entity attributes as an associative array.
    *
