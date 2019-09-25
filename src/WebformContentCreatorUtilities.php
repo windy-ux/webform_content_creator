@@ -13,6 +13,8 @@ class WebformContentCreatorUtilities {
 
   const ENTITY_MANAGER = 'entity.manager';
 
+  const CONTENT_BASIC_FIELDS = ['body', 'status', 'uid'];
+
   /**
    * Contructs a tree with webform elements which can be used in Selects.
    *
@@ -147,7 +149,7 @@ class WebformContentCreatorUtilities {
     $nodeFields = self::contentTypeFields($contentType);
     $nodeFieldIds = array_keys($nodeFields);
     return array_filter($nodeFieldIds, function ($fid) {
-      return strpos($fid, 'field_') === 0 || strcmp($fid, 'body') === 0 || strcmp($fid, 'status') === 0;
+      return strpos($fid, 'field_') === 0 || in_array($fid, self::CONTENT_BASIC_FIELDS);
     });
   }
 
