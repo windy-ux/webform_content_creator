@@ -27,14 +27,31 @@ function webform_content_creator_webform_submission_update($webform_submission) 
     return;
   }
 
-  if ($webform_submission->original->isDraft() && !$webform_submission->isDraft()) {
+  if (!$webform_submission->isDraft()) {
     $entities = \Drupal::entityTypeManager()->getStorage('webform_content_creator')->loadMultiple();
     foreach ($entities as $e) {
       if (!$e->equalsWebform($webform_submission->bundle()) || !$e->existsContentType()) {
         continue;
       }
-      $e->createNode($webform_submission);
+      if ($webform_submission->original->isDraft()) {
+        $e->createNode($webform_submission);
+      } else {
+        $e->updateNode($webform_submission, 'edit');
+      }
     }
+  }
+}
+
+/**
+ * Implements hook_webform_submission_delete().
+ */
+function webform_content_creator_webform_submission_delete($webform_submission) {
+  $entities = \Drupal::entityTypeManager()->getStorage('webform_content_creator')->loadMultiple();
+  foreach ($entities as $e) {
+    if (!$e->equalsWebform($webform_submission->bundle()) || !$e->existsContentType()) {
+      continue;
+    }
+    $e->updateNode($webform_submission, 'delete');
   }
 }
 

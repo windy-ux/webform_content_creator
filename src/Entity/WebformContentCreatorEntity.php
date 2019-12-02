@@ -130,6 +130,36 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
+   * Check if synchronization between nodes and webform submissions is used.
+   *
+   * @return boolean
+   *   true, when the synchronization is used. Otherwise, returns false.
+   */
+  public function getSyncEditContentCheck() {
+    return $this->get(WebformContentCreatorInterface::SYNC_CONTENT);
+  }
+
+  /**
+   * Check if synchronization between nodes and webform submissions is used in deletion.
+   *
+   * @return boolean
+   *   true, when the synchronization is used. Otherwise, returns false.
+   */
+  public function getSyncDeleteContentCheck() {
+    return $this->get(WebformContentCreatorInterface::SYNC_CONTENT_DELETE);
+  }
+
+  /**
+   * Get node field in which the webform submission id will be stored, to perform synchronization between nodes and webform submissions.
+   *
+   * @return string
+   *   Field machine name.
+   */
+  public function getSyncContentField() {
+    return $this->get(WebformContentCreatorInterface::SYNC_CONTENT_FIELD);
+  }
+  
+  /**
    * Returns the encryption method.
    *
    * @return boolean
@@ -292,6 +322,88 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
     return $result;
+  }
+
+  /**
+   * Update node from webform submission.
+   *
+   * @param WebformSubmission entity $webform_submission Webform submission
+   * @param string $op Operation
+   * @return boolean true, if succeeded. Otherwise, return false.
+   */
+  public function updateNode($webform_submission, $op = 'edit') {
+    if (empty($this->getSyncContentField())) {
+      return false;
+    }
+
+    $contentType = \Drupal::entityTypeManager()->getStorage('node_type')->load($this->getContentType());
+    if (empty($contentType)) {
+      return false;
+    }
+
+    $fields = WebformContentCreatorUtilities::contentTypeFields($contentType);
+    if (empty($fields)) {
+      return false;
+    }
+    
+    if (!array_key_exists($this->getSyncContentField(), $fields)) {
+      return false;
+    }
+
+    $nodeTitle = $this->getNodeTitle();
+
+    // get webform submission data
+    $data = $webform_submission->getData();
+    if (empty($data)) {
+      return false;
+    }
+
+    $encryptionProfile = $this->getProfileName();
+
+    // decrypt title
+    $decrypted_title = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
+
+    // get nodes created from this webform submission
+    $nodes = \Drupal::entityTypeManager()
+      ->getStorage('node')
+      ->loadByProperties([$this->getSyncContentField() => $webform_submission->id()]);
+    
+    // use only first result, if exists
+    if (!($content = reset($nodes))) {
+      return false;
+    }
+
+    if ($op === 'delete' && !empty($this->getSyncDeleteContentCheck())) {
+      $result = $content->delete();
+      return $result;
+    }
+
+    if (empty($this->getSyncEditContentCheck())) {
+      return false;
+    }
+
+	// set title
+	$content->setTitle($decrypted_title);
+
+    // set node fields values
+    $attributes = $this->get(WebformContentCreatorInterface::ELEMENTS);
+	
+    foreach ($attributes as $k2 => $v2) {
+      $content = $this->mapNodeField($content, $webform_submission, $fields, $data, $encryptionProfile, $k2, $v2, $attributes);
+    }
+
+    $result = false;
+
+    // save node
+    try {
+      $result = $content->save();
+    } catch (\Exception $e) {
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error(t('A problem occurred while updating node.'));
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
+    }
+
+    return $result;
+
   }
 
   /**

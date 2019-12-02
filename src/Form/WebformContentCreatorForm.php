@@ -80,6 +80,44 @@ class WebformContentCreatorForm extends EntityForm {
       '#required' => TRUE,
     ];
 
+    $form['sync_content'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Synchronize Webform submission with the created node in edition'),
+      '#description' => $this->t('Perform synchronization between webform submission and respective node when one is edited. When a webform submission is edited, the resultant node is synchronized with the new values.'),
+      '#default_value' => $this->entity->getSyncEditContentCheck(),
+    ];
+
+    $form['sync_content_delete'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Synchronize Webform submission with the created node in deletion'),
+      '#description' => $this->t('Perform synchronization in deletion. When a webform submission is deleted, the resultant node is also deleted.'),
+      '#default_value' => $this->entity->getSyncDeleteContentCheck(),
+    ];
+
+    $form['sync_content_node_field'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Synchronization field\'s machine name'),
+      '#maxlength' => 255,
+      '#default_value' => $this->entity->getSyncContentField(),
+      '#help' => $this->t('When a webform submission is edited, the node which stores the webform submission id in this field is also updated. You have to create this field in the content type and then you have to map this field with Submission id. Example: field_submission_id'),
+      '#states' => [
+        'visible' =>
+          [
+            [
+            ':input[name="sync_content"]' => ['checked' => true],
+            ],
+            'or',
+            [
+              ':input[name="sync_content_delete"]' => ['checked' => true],
+            ],
+          ],
+        'required' =>
+          [
+            ':input[name="sync_content"]' => ['checked' => true],
+          ],          
+      ],
+    ];
+
     $form['use_encrypt'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Decrypt values'),

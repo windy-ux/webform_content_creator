@@ -24,6 +24,12 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
 
   const TYPE = 'type';
 
+  const SYNC_CONTENT = 'sync_content';
+
+  const SYNC_CONTENT_DELETE = 'sync_content_delete';
+
+  const SYNC_CONTENT_FIELD = 'sync_content_node_field';
+
   const USE_ENCRYPT = 'use_encrypt';
 
   const ENCRYPTION_PROFILE = 'encryption_profile';
@@ -88,6 +94,30 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function getAttributes();
 
   /**
+   * Check if synchronization between nodes and webform submissions is used.
+   *
+   * @return boolean
+   *   true, when the synchronization is used. Otherwise, returns false.
+   */
+  public function getSyncEditContentCheck();
+
+  /**
+   * Check if synchronization between nodes and webform submissions is used in deletion.
+   *
+   * @return boolean
+   *   true, when the synchronization is used. Otherwise, returns false.
+   */
+  public function getSyncDeleteContentCheck();
+
+  /**
+   * Get node field in which the webform submission id will be stored, to perform synchronization between nodes and webform submissions.
+   *
+   * @return string
+   *   Field machine name.
+   */
+  public function getSyncContentField();
+
+  /**
    * Returns the encryption method.
    *
    * @return boolean
@@ -139,6 +169,15 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
    * @param type $webform_submission Webform submission
    */
   public function createNode($webform_submission);
+
+  /**
+   * Update node from webform submission.
+   *
+   * @param WebformSubmission entity $webform_submission Webform submission
+   * @param string $op Operation
+   * @return boolean true, if succeeded. Otherwise, return false.
+   */
+  public function updateNode($webform_submission, $op);
   
   /**
    * Check if field maximum size is exceeded. 

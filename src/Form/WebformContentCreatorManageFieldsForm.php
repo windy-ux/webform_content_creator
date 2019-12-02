@@ -153,10 +153,10 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
         $form[self::FORM_TABLE][$fieldId][self::WEBFORM_FIELD]['#default_value'] = $type . ',' . $attributes[$fieldId][self::WEBFORM_FIELD];
       }
 
-      // textfield with custom text (including tokens)
-      $form[self::FORM_TABLE][$fieldId][self::CUSTOM_VALUE] = ['#type' => 'textfield',
+      // textarea with custom text (including tokens)
+      $form[self::FORM_TABLE][$fieldId][self::CUSTOM_VALUE] = [
+        '#type' => 'textarea',
         '#default_value' => array_key_exists($fieldId, $attributes) ? $attributes[$fieldId][self::CUSTOM_VALUE] : '',
-        '#size' => 35,
       ];
     }
 
@@ -179,12 +179,12 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
         continue;
       }
       $args = explode(',', $v[self::WEBFORM_FIELD]);
-      if (empty($args) || count($args) < 1) {
+      if (empty($args) || count($args) < 2) {
         continue;
       }
 
       $nodeFieldType = $nodeFields[$k]->getType();
-      $webformOptionType = $webformElementTypes[$args[1]];
+      $webformOptionType = array_key_exists($args[1], $webformElementTypes) ? $webformElementTypes[$args[1]] : '';
       if ($nodeFieldType === $webformOptionType) {
         continue;
       }

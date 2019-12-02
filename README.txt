@@ -28,4 +28,11 @@ Webform Content Creator 8.x-1.x-dev
 8. When choosing a Node field (checkbox on the left side of each field name), a Webform field can 
    be choosen to match with this Node field (optionally, you can provide a custom text instead, using 
    available tokens).
+   
+### New features in version 8.x-1.2
+
+- Change custom textfield to custom textarea (https://www.drupal.org/project/webform_content_creator/issues/3089198)
+- Add possibility to synchronize webform submission and the corresponding node. When this webform submission is edited 
+  or deleted, the corresponding node is edited or deleted accordingly. To do this, you have to create a synchronization
+  field in the content type and map this field with submission id.
 
