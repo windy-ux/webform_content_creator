@@ -43,7 +43,7 @@ class WebformContentCreatorDeleteForm extends EntityConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->entity->delete();
-    drupal_set_message($this->t('Entity %label has been deleted.', array('%label' => $this->entity->getTitle())));
+    $this->messenger()->addMessage($this->t('Entity %label has been deleted.', array('%label' => $this->entity->getTitle())));
 
     $form_state->setRedirectUrl($this->getCancelUrl());
   }

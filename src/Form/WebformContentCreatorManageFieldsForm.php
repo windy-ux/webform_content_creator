@@ -106,7 +106,7 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
 
     foreach ($nodeFilteredFieldIds as $fieldId) {
       $route_parameters = [
-        'node_type' => 'exposition',
+        'node_type' => $ct,
         'field_config' => 'node.' . $ct . '.' . $fieldId,
       ];
 

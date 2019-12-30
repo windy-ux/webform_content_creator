@@ -74,7 +74,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $this->set('title', $title);
     return $this;
   }
-  
+
   /**
    * Returns the entity content type id.
    *
@@ -96,7 +96,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $this->set('content_type', $contentType);
     return $this;
   }
-  
+
   /**
    * Returns the entity webform id.
    *
@@ -158,7 +158,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   public function getSyncContentField() {
     return $this->get(WebformContentCreatorInterface::SYNC_CONTENT_FIELD);
   }
-  
+
   /**
    * Returns the encryption method.
    *
@@ -181,7 +181,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
 
   /**
    * Get node title.
-   * 
+   *
    * @return string Node title
    */
   private function getNodeTitle() {
@@ -197,7 +197,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
 
   /**
    * Get encryption profile name.
-   * 
+   *
    * @return string Encryption profile name.
    */
   private function getProfileName() {
@@ -212,7 +212,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
 
   /**
    * Get decrypted value with encryption profile associated with the Webform Content Creator entity.
-   * 
+   *
    * @param string $value Encrypted value
    * @return string $encryptionProfile Encryption profile used to encrypt/decrypt $value
    */
@@ -224,10 +224,10 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     }
     return $decValue;
   }
-  
+
   /**
    * Use a single mapping (node field-webform submission value) to set a Node field value.
-   * 
+   *
    * @param NodeInterface $initialContent Content being mapped with a webform submission
    * @param WebformSubmissionInterface $webform_submission Webform submission entity
    * @param array $fields Node fields
@@ -249,7 +249,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       if($decValue === 'true' || $decValue === 'TRUE') {
         $decValue = TRUE;
       }
-    } else {		
+    } else {
       if (!$attributes[$fieldId][WebformContentCreatorInterface::TYPE]) { // webform element
         if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
           return $content;
@@ -313,7 +313,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     }
 
     $result = false;
-    
+
     // save node
     try {
       $result = $content->save();
@@ -345,7 +345,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     if (empty($fields)) {
       return false;
     }
-    
+
     if (!array_key_exists($this->getSyncContentField(), $fields)) {
       return false;
     }
@@ -367,7 +367,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $nodes = \Drupal::entityTypeManager()
       ->getStorage('node')
       ->loadByProperties([$this->getSyncContentField() => $webform_submission->id()]);
-    
+
     // use only first result, if exists
     if (!($content = reset($nodes))) {
       return false;
@@ -387,7 +387,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
 
     // set node fields values
     $attributes = $this->get(WebformContentCreatorInterface::ELEMENTS);
-	
+
     foreach ($attributes as $k2 => $v2) {
       $content = $this->mapNodeField($content, $webform_submission, $fields, $data, $encryptionProfile, $k2, $v2, $attributes);
     }
@@ -453,15 +453,15 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    */
   public function statusMessage($status) {
     if ($status) {
-      drupal_set_message($this->t('Saved the %label entity.', ['%label' => $this->getTitle(),]));
+      \Drupal::messenger()->addMessage($this->t('Saved the %label entity.', ['%label' => $this->getTitle(),]));
     } else {
-      drupal_set_message($this->t('The %label entity was not saved.', ['%label' => $this->getTitle(),]));
+      \Drupal::messenger()->addMessage($this->t('The %label entity was not saved.', ['%label' => $this->getTitle(),]));
     }
   }
 
   /**
-   * Check if field maximum size is exceeded. 
-   * 
+   * Check if field maximum size is exceeded.
+   *
    * @param array $fields Content type fields
    * @param string $k Field machine name
    * @param string $decValue Decrypted value
@@ -470,11 +470,11 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   public function checkMaxFieldSizeExceeded($fields, $k, $decValue = "") {
     if (!array_key_exists($k, $fields) || empty($fields[$k])) {
       return 0;
-    }  
+    }
     $fieldSettings = $fields[$k]->getSettings();
     if (empty($fieldSettings) || !array_key_exists('max_length', $fieldSettings)) {
       return 0;
-    }  
+    }
 
     $maxLength = $fieldSettings['max_length'];
     if (empty($maxLength)) {

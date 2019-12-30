@@ -14,6 +14,13 @@ use Drupal\webform_content_creator\WebformContentCreatorUtilities;
 class WebformContentCreatorForm extends EntityForm {
 
   /**
+   * The entity query.
+   *
+   * @var \Drupal\Core\Entity\Query\QueryFactory
+   */
+  protected $entityQuery;
+
+  /**
    * Constructs an WebformContentCreatorForm object.
    *
    * @param \Drupal\Core\Entity\Query\QueryFactory $entity_query
