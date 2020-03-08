@@ -27,22 +27,12 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
   const FORM_TABLE = 'table';
 
   /**
-   * Constructs an WebformContentCreatorForm object.
-   *
-   * @param \Drupal\Core\Entity\Query\QueryFactory $entity_query
-   *   The entity query.
-   */
-  public function __construct(QueryFactory $entity_query) {
-    $this->entityQuery = $entity_query;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
-        $container->get('entity.query')
-    );
+    $instance = new static();
+    $instance->entityQuery = $container->get('entity.query');
+    return $instance;
   }
 
   /**

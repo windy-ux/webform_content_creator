@@ -29,7 +29,15 @@ class WebformContentCreatorUtilities {
     $flag = 0; // check which element is the first wizard page (in case it exists)
     $aux = array();
     foreach ($webformFieldIds as $v) {
-      $title = isset($elements[$v]['#title']) ? $elements[$v]['#title'] : $elements[$v]['#markup'];
+	  $title = 'Section';
+	  if (isset($elements[$v]['#title'])) {
+	    $title = $elements[$v]['#title'];
+	  } else {
+		if (isset($elements[$v]['#markup'])) {
+	      $title = $elements[$v]['#markup'];
+        }
+	  }
+      
       if ($elements[$v]["#type"] === "webform_wizard_page") {
         if ($flag === 0) { //executes only for the first wizard page (first optgroup in select)
           $wizardPage = html_entity_decode($title);

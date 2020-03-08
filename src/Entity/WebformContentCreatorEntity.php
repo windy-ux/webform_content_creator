@@ -9,6 +9,7 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\webform_content_creator\WebformContentCreatorInterface;
 use Drupal\Core\StringTranslation;
 use Drupal\webform_content_creator\WebformContentCreatorUtilities;
+use Drupal\Core\Datetime\DrupalDateTime;
 
 /**
  * Defines the Webform Content creator entity.
@@ -260,6 +261,10 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       }
     }
 
+    if ($fields[$fieldId]->getType() == 'datetime') {
+      $decValue = $this->convertTimestamp($decValue);
+    }
+
     // check if field's max length is exceeded
     $maxLength = $this->checkMaxFieldSizeExceeded($fields, $fieldId, $decValue);
     if ($maxLength === 0) {
@@ -485,5 +490,18 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       return $maxLength;
     }
     return strlen($decValue);
+  }
+
+  /**
+   * @param $datefield
+   * @return Timestamp
+   */
+  public function convertTimestamp($datefield) {
+    $dateTime = new DrupalDateTime($datefield, 'UTC');
+    $formatted = \Drupal::service('date.formatter')->format(
+      $dateTime->getTimestamp(), 'custom', 'Y-m-d\Th:i:s'
+    );
+
+    return $formatted;
   }
 }
