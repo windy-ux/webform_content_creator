@@ -29,25 +29,32 @@ class WebformContentCreatorUtilities {
     $flag = 0; // check which element is the first wizard page (in case it exists)
     $aux = array();
     foreach ($webformFieldIds as $v) {
-	  $title = 'Section';
-	  if (isset($elements[$v]['#title'])) {
-	    $title = $elements[$v]['#title'];
-	  } else {
-		if (isset($elements[$v]['#markup'])) {
-	      $title = $elements[$v]['#markup'];
+      if ($v === 'actions') {
+        continue;
+      }
+      $title = 'Section';
+      if (isset($elements[$v]['#title'])) {
+        $title = $elements[$v]['#title'];
+      } else {
+        if (isset($elements[$v]['#markup'])) {
+          $title = $elements[$v]['#markup'];
         }
-	  }
+      }
       
-      if ($elements[$v]["#type"] === "webform_wizard_page") {
+      if ($elements[$v]["#type"] === 'webform_wizard_page' || $elements[$v]["#type"] === 'webform_flexbox' || $elements[$v]["#type"] === 'fieldset') {
+        if ($elements[$v]["#webform_parent_key"] !== '') {
+          continue;
+        }
         if ($flag === 0) { //executes only for the first wizard page (first optgroup in select)
           $wizardPage = html_entity_decode($title);
           unset($aux);
           $flag ++;
           continue;
         }
-
-        foreach ($aux as $k2 => $v2) {
-          $result[$wizardPage][$k2] = $v2;
+        if (!empty($aux)) {
+          foreach ($aux as $k2 => $v2) {
+            $result[$wizardPage][$k2] = $v2;
+          }
         }
         $wizardPage = html_entity_decode($title);
         unset($aux);
@@ -57,7 +64,6 @@ class WebformContentCreatorUtilities {
         $aux['0,' . $v] = html_entity_decode($title) . ' (' . $v . ') - ' . $elementsDefinitions[$elements[$v]["#type"]]['label'];
       }
     }
-
     // organize webform elements as a tree (wizard pages as optgroups)
     foreach ($aux as $k2 => $v2) {
       $result[$wizardPage][$k2] = $v2;

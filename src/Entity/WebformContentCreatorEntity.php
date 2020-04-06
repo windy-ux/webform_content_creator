@@ -10,6 +10,7 @@ use Drupal\webform_content_creator\WebformContentCreatorInterface;
 use Drupal\Core\StringTranslation;
 use Drupal\webform_content_creator\WebformContentCreatorUtilities;
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Field\EntityReferenceFieldItemList;
 
 /**
  * Defines the Webform Content creator entity.
@@ -256,8 +257,17 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
           return $content;
         }
         $decValue = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
+        if ($fields[$fieldId]->getType() === 'entity_reference' && (!is_array($decValue) && intval($decValue) === 0)) {
+          $content->set($fieldId, array());
+          return $content;
+        }
       } else { // webform basic property
-        $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
+        $fieldObject = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]};
+        if ($fieldObject instanceof EntityReferenceFieldItemList) {
+          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
+        } else {
+          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
+        }
       }
     }
 
