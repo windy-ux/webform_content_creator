@@ -3,7 +3,6 @@
 namespace Drupal\webform_content_creator\Form;
 
 use Drupal\Core\Entity\EntityForm;
-use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\webform_content_creator\WebformContentCreatorUtilities;
@@ -12,32 +11,6 @@ use Drupal\webform_content_creator\WebformContentCreatorUtilities;
  * Form handler for the Webform content creator add and edit forms.
  */
 class WebformContentCreatorForm extends EntityForm {
-
-  /**
-   * The entity query.
-   *
-   * @var \Drupal\Core\Entity\Query\QueryFactory
-   */
-  protected $entityQuery;
-
-  /**
-   * Constructs an WebformContentCreatorForm object.
-   *
-   * @param \Drupal\Core\Entity\Query\QueryFactory $entity_query
-   *   The entity query.
-   */
-  public function __construct(QueryFactory $entity_query) {
-    $this->entityQuery = $entity_query;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static(
-        $container->get('entity.query')
-    );
-  }
 
   /**
    * {@inheritdoc}
@@ -62,10 +35,10 @@ class WebformContentCreatorForm extends EntityForm {
         'source' => ['title'],
       ],
       '#disabled' => !$this->entity->isNew(),
-      '#description' => t('A unique machine-readable name for this content type. It must only contain lowercase letters, numbers, and underscores. This name will be used for constructing the URL of the %webform-content-creator-add page, in which underscores will be converted into hyphens.'),
+      '#description' => $this->t('A unique machine-readable name for this content type. It must only contain lowercase letters, numbers, and underscores. This name will be used for constructing the URL of the %webform-content-creator-add page, in which underscores will be converted into hyphens.'),
     ];
 
-    // select with all webforms
+    // Select with all webforms.
     $webforms_formatted = WebformContentCreatorUtilities::getFormattedWebforms();
     $form['webform'] = [
       '#type' => 'select',
@@ -76,7 +49,7 @@ class WebformContentCreatorForm extends EntityForm {
       '#required' => TRUE,
     ];
 
-    // select with all content types
+    // Select with all content types.
     $contentTypes_formatted = WebformContentCreatorUtilities::getFormattedContentTypes();
     $form['content_type'] = [
       '#type' => 'select',
@@ -103,7 +76,7 @@ class WebformContentCreatorForm extends EntityForm {
 
     $form['sync_content_node_field'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Synchronization field\'s machine name'),
+      '#title' => $this->t('Synchronization field machine name'),
       '#maxlength' => 255,
       '#default_value' => $this->entity->getSyncContentField(),
       '#help' => $this->t('When a webform submission is edited, the node which stores the webform submission id in this field is also updated. You have to create this field in the content type and then you have to map this field with Submission id. Example: field_submission_id'),
@@ -111,17 +84,17 @@ class WebformContentCreatorForm extends EntityForm {
         'visible' =>
           [
             [
-            ':input[name="sync_content"]' => ['checked' => true],
+              ':input[name="sync_content"]' => ['checked' => TRUE],
             ],
             'or',
             [
-              ':input[name="sync_content_delete"]' => ['checked' => true],
+              ':input[name="sync_content_delete"]' => ['checked' => TRUE],
             ],
           ],
         'required' =>
           [
-            ':input[name="sync_content"]' => ['checked' => true],
-          ],          
+            ':input[name="sync_content"]' => ['checked' => TRUE],
+          ],
       ],
     ];
 
@@ -132,7 +105,7 @@ class WebformContentCreatorForm extends EntityForm {
       '#default_value' => $this->entity->getEncryptionCheck(),
     ];
 
-    // select with all encryption profiles
+    // Select with all encryption profiles.
     $encryptionProfiles_formatted = WebformContentCreatorUtilities::getFormattedEncryptionProfiles();
     $form['encryption_profile'] = [
       '#type' => 'select',
@@ -143,12 +116,12 @@ class WebformContentCreatorForm extends EntityForm {
       '#states' => [
         'visible' =>
           [
-          ':input[name="use_encrypt"]' => ['checked' => true],
+            ':input[name="use_encrypt"]' => ['checked' => TRUE],
           ],
         'required' =>
           [
-          ':input[name="use_encrypt"]' => ['checked' => true],
-          ],          
+            ':input[name="use_encrypt"]' => ['checked' => TRUE],
+          ],
       ],
     ];
 
@@ -168,12 +141,12 @@ class WebformContentCreatorForm extends EntityForm {
   }
 
   /**
-   * Helper function to check whether an Webform content creator configuration entity exists.
+   * Function to check whether an Webform content creator entity exists.
    */
   public function exist($id) {
-    $entity = $this->entityQuery->get('webform_content_creator')
-        ->condition('id', $id)
-        ->execute();
+    $entity = \Drupal::entityQuery('webform_content_creator')
+      ->condition('id', $id)
+      ->execute();
     return (bool) $entity;
   }
 

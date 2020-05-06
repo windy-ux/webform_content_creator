@@ -10,7 +10,7 @@ use Drupal\Core\Url;
  * Provides a list of Webform Content Creator entities.
  */
 class WebformContentCreatorListBuilder extends ConfigEntityListBuilder {
-  
+
   const TITLE = 'title';
 
   const WEBFORM = 'webform';
@@ -20,7 +20,8 @@ class WebformContentCreatorListBuilder extends ConfigEntityListBuilder {
   /**
    * Constructs the table header.
    *
-   * @return array Table header
+   * @return array
+   *   Table header
    */
   public function buildHeader() {
     $header[self::TITLE] = $this->t('Title');
@@ -32,8 +33,11 @@ class WebformContentCreatorListBuilder extends ConfigEntityListBuilder {
   /**
    * Constructs the table rows.
    *
-   * @param EntityInterface $entity
-   * @return \Drupal\Core\Entity\EntityListBuilder A render array structure of fields for this entity.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   Webform content creator entity.
+   *
+   * @return \Drupal\Core\Entity\EntityListBuilder
+   *   A render array structure of fields for this entity.
    */
   public function buildRow(EntityInterface $entity) {
     $webform = \Drupal::entityTypeManager()->getStorage(self::WEBFORM)->load($entity->getWebform());

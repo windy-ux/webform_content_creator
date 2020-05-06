@@ -78,4 +78,4 @@ entity.webform_content_creator.manage_fields_form:
     _entity_form: 'webform_content_creator.manage_fields'
     _title: 'Manage fields'
   requirements:
-    _permission: 'access webform content creator configuration'   
+    _permission: 'access webform content creator configuration'

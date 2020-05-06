@@ -1,6 +1,13 @@
 <?php
 
 /**
+ * @file
+ * Allows to call functions after creating/editing/deleting webform submissions.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+
+/**
  * Implements hook_webform_submission_insert().
  */
 function webform_content_creator_webform_submission_insert($webform_submission) {
@@ -35,7 +42,8 @@ function webform_content_creator_webform_submission_update($webform_submission) 
       }
       if ($webform_submission->original->isDraft()) {
         $e->createNode($webform_submission);
-      } else {
+      }
+      else {
         $e->updateNode($webform_submission, 'edit');
       }
     }
@@ -58,7 +66,7 @@ function webform_content_creator_webform_submission_delete($webform_submission) 
 /**
  * Implements hook_node_type_delete().
  */
-function webform_content_creator_node_type_delete(Drupal\Core\Entity\EntityInterface $entity) {
+function webform_content_creator_node_type_delete(EntityInterface $entity) {
   $entities = \Drupal::entityTypeManager()->getStorage('webform_content_creator')->loadMultiple();
   foreach ($entities as $e) {
     if ($e->equalsContentType($entity->id())) {
@@ -70,7 +78,7 @@ function webform_content_creator_node_type_delete(Drupal\Core\Entity\EntityInter
 /**
  * Implements hook_webform_delete().
  */
-function webform_content_creator_webform_delete(Drupal\Core\Entity\EntityInterface $entity) {
+function webform_content_creator_webform_delete(EntityInterface $entity) {
   $entities = \Drupal::entityTypeManager()->getStorage('webform_content_creator')->loadMultiple();
   foreach ($entities as $e) {
     if ($e->equalsWebform($entity->id())) {

@@ -16,24 +16,15 @@ use Drupal\webform_content_creator\Entity\WebformContentCreatorEntity;
  */
 class WebformContentCreatorEntityTest extends UnitTestCase {
 
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function setUp() {
-    parent::setUp();
-  }
-
   /**
    * Tests the Webform Content Creator entity functions.
-   *
    */
   public function testEntity() {
     // Mock a Webform Content Creator entity.
     $entity = new WebformContentCreatorEntity([], 'webform_content_creator');
     $this->assertTrue($entity instanceof WebformContentCreatorEntity);
 
-    // Test entity methods
+    // Test entity methods.
     $entity->setTitle('testTitle');
     $this->assertEquals($entity->getTitle(), 'testTitle');
     $entity->setContentType('ct1');

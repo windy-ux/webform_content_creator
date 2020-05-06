@@ -3,6 +3,7 @@
 namespace Drupal\webform_content_creator;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Drupal\webform\WebformSubmissionInterface;
 
 /**
  * Provides an interface defining an Webform content creator entity.
@@ -11,7 +12,7 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   const WEBFORM = 'webform';
 
   const WEBFORM_CONTENT_CREATOR = 'webform_content_creator';
-  
+
   const FIELD_TITLE = 'field_title';
 
   const WEBFORM_FIELD = 'webform_field';
@@ -45,12 +46,14 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   /**
    * Sets the entity title.
    *
-   * @param string $title Node title
+   * @param string $title
+   *   Node title.
+   *
    * @return $this
    *   The Webform Content Creator entity.
    */
   public function setTitle($title);
-  
+
   /**
    * Returns the entity content type id.
    *
@@ -62,29 +65,33 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   /**
    * Sets the content type entity.
    *
-   * @param string $contentType Content type entity
+   * @param string $contentType
+   *   Content type entity.
+   *
    * @return $this
    *   The Webform Content Creator entity.
    */
   public function setContentType($contentType);
-  
+
   /**
    * Returns the entity webform id.
    *
    * @return string
-   *   The webform.
+   *   The entity webform.
    */
   public function getWebform();
 
   /**
    * Sets the entity webform id.
    *
-   * @param string $webform Webform id
+   * @param string $webform
+   *   Webform id.
+   *
    * @return $this
    *   The Webform Content Creator entity.
    */
   public function setWebform($webform);
-  
+
   /**
    * Returns the entity attributes as an associative array.
    *
@@ -96,21 +103,21 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   /**
    * Check if synchronization between nodes and webform submissions is used.
    *
-   * @return boolean
+   * @return bool
    *   true, when the synchronization is used. Otherwise, returns false.
    */
   public function getSyncEditContentCheck();
 
   /**
-   * Check if synchronization between nodes and webform submissions is used in deletion.
+   * Check if synchronization is used in deletion.
    *
-   * @return boolean
+   * @return bool
    *   true, when the synchronization is used. Otherwise, returns false.
    */
   public function getSyncDeleteContentCheck();
 
   /**
-   * Get node field in which the webform submission id will be stored, to perform synchronization between nodes and webform submissions.
+   * Get node field in which the webform submission id will be stored.
    *
    * @return string
    *   Field machine name.
@@ -120,7 +127,7 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   /**
    * Returns the encryption method.
    *
-   * @return boolean
+   * @return bool
    *   true, when an encryption profile is used. Otherwise, returns false.
    */
   public function getEncryptionCheck();
@@ -134,58 +141,79 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function getEncryptionProfile();
 
   /**
-   * Check if a content type entity associated with the Webform content creator entity exists.
+   * Check if the content type entity exists.
    *
-   * @return boolean true, if content type entity exists. Otherwise, returns false.
+   * @return bool
+   *   True, if content type entity exists. Otherwise, returns false.
    */
   public function existsContentType();
 
   /**
-   * Check if the content type id (parameter) is equal to the content type id of Webform content creator entity
+   * Check if the content type id is equal to the configured content type.
    *
-   * @param string $ct Content type id
-   * @return boolean true, if the parameter is equal to the content type id of Webform content creator entity. Otherwise, returns false.
+   * @param string $ct
+   *   Content type id.
+   *
+   * @return bool
+   *   True, if the parameter is equal to the content type id of Webform
+   *   content creator entity. Otherwise, returns false.
    */
   public function equalsContentType($ct);
 
   /**
-   * Check if the webform id (parameter) is equal to the webform id of Webform content creator entity
+   * Check if the webform id is equal to the configured webform id.
    *
-   * @param string $webform Webform id
-   * @return boolean true, if the parameter is equal to the webform id of Webform content creator entity. Otherwise, returns false.
+   * @param string $webform
+   *   Webform id.
+   *
+   * @return bool
+   *   True, if the parameter is equal to the webform id of Webform
+   *   content creator entity. Otherwise, returns false.
    */
   public function equalsWebform($webform);
 
   /**
-   * Show a message accordingly to status value, after creating/updating an entity.
+   * Show a message accordingly to status, after creating/updating an entity.
    *
-   * @param int $status Status int, returned after creating/updating an entity.
+   * @param int $status
+   *   Status int, returned after creating/updating an entity.
    */
   public function statusMessage($status);
 
   /**
    * Create node from webform submission.
    *
-   * @param type $webform_submission Webform submission
+   * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
+   *   Webform submission.
    */
-  public function createNode($webform_submission);
+  public function createNode(WebformSubmissionInterface $webform_submission);
 
   /**
    * Update node from webform submission.
    *
-   * @param WebformSubmission entity $webform_submission Webform submission
-   * @param string $op Operation
-   * @return boolean true, if succeeded. Otherwise, return false.
+   * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
+   *   Webform submission.
+   * @param string $op
+   *   Operation.
+   *
+   * @return bool
+   *   True, if succeeded. Otherwise, return false.
    */
-  public function updateNode($webform_submission, $op);
-  
+  public function updateNode(WebformSubmissionInterface $webform_submission, $op);
+
   /**
-   * Check if field maximum size is exceeded. 
-   * 
-   * @param array $fields Content type fields
-   * @param string $k Field machine name
-   * @param string $decValue Decrypted value
-   * @return int 1 if maximum size is exceeded, otherwise return 0.
+   * Check if field maximum size is exceeded.
+   *
+   * @param array $fields
+   *   Content type fields.
+   * @param string $k
+   *   Field machine name.
+   * @param string $decValue
+   *   Decrypted value.
+   *
+   * @return int
+   *   1 if maximum size is exceeded, otherwise return 0.
    */
-  public function checkMaxFieldSizeExceeded($fields,$k,$decValue);
+  public function checkMaxFieldSizeExceeded(array $fields, $k, $decValue);
+
 }
