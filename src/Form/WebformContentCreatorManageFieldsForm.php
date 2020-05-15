@@ -244,13 +244,10 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
    *   Entity id.
    *
    * @return bool
-   *   True if entity already exists
+   *   True if entity already exists.
    */
   public function exist($id) {
-    $entity = \Drupal::entityQuery('webform_content_creator')
-      ->condition('id', $id)
-      ->execute();
-    return (bool) $entity;
+    return WebformContentCreatorUtilities::existsWebformContentCreatorEntity($id);
   }
 
 }

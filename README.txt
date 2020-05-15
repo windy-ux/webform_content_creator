@@ -1,49 +1,56 @@
-Webform Content Creator
+CONTENTS OF THIS FILE
+---------------------
 
-### About this module
+ * Introduction
+ * Requirements
+ * Installation
+ * Configuration
 
-- This module provides the ability to create nodes after submitting webforms,
+INTRODUCTION
+------------
+
+ * This module provides the ability to create nodes after submitting webforms,
   and do mappings between the fields of the created node and webform 
   submission values.
 
-### Goals
+REQUIREMENTS
+------------
 
-- Creation of nodes after submitting a Webform;
-- Possibility to map between Webform submission values and Node entity fields;
-- Possibility to save only some Webform Submission values in Drupal platform,
-  after sending entire Webform submission by web service (REST/SOAP) to
-  another party.
+This module requires the following modules:
+
+ * Webform (https://www.drupal.org/project/webform)
+ * Webform Encrypt (https://www.drupal.org/project/webform_encrypt)
   
-### Create a Webform Content Creator entity
+INSTALLATION
+------------
 
-1. Enable Webform Content Creator module;
-2. Go to Webform Content Creator configuration page;
-   (/admin/config/webform_content_creator)
-3. Click on "Add configuration";
-4. Give a title to Webform Content Creator entity and choose a Webform and a
-   Content Type, in order to have mappings between Webform submission values
-   and node field values, and then click on "Save";
-5. In the configuration page (/admin/config/webform_content_creator), click on
-   "Manage fields" on the entity you have just created;
-6. In the "Title" input, you can give a title to the node that is created after
-   submitting the Webform (tokens may be used);
-7. After that, you have the possibility to choose the Node fields used in the
-   mapping;
-8. When choosing a Node field (checkbox on the left side of each field name),
-   a Webform field can be choosen to match with this Node field (optionally, 
-   you can provide a custom text instead, using available tokens).
+ * Install as you would normally install a contributed Drupal module.
 
-### New features in version 8.x-1.2
+CONFIGURATION
+-------------
 
-- Change custom textfield to custom textarea 
-  (https://www.drupal.org/project/webform_content_creator/issues/3089198);
-- Add possibility to synchronize webform submission and the corresponding node.
-  When this webform submission is edited or deleted, the corresponding node is
-  edited or deleted accordingly. To do this, you have to create a
-  synchronization field in the content type and map this field with submission 
-  id.
+ * Configure Webform Content Creator entities:
 
-### New features in version 8.x-1.6
+   1. Enable Webform Content Creator module;
+   2. Go to Webform Content Creator configuration page;
+      (/admin/config/webform_content_creator)
+   3. Click on "Add configuration";
+   4. Give a title to Webform Content Creator entity and choose a Webform and a
+      Content Type, in order to have mappings between Webform submission values
+      and node field values, and then click on "Save";
+   5. In the configuration page (/admin/config/webform_content_creator), click on
+      "Manage fields" on the entity you have just created;
+   6. In the "Title" input, you can give a title to the node that is created after
+      submitting the Webform (tokens may be used);
+   7. After that, you have the possibility to choose the Node fields used in the
+      mapping;
+   8. When choosing a Node field (checkbox on the left side of each field name),
+      a Webform field can be choosen to match with this Node field (optionally, 
+      you can provide a custom text instead, using available tokens).
 
-- Drupal 9 compatibility;
-- Fix coding standards.
+ * Configure the user permissions in Administration » People » Permissions:
+
+   - Access Webform content creator configurations
+
+     Users with this permission will see the administration menu at the top of
+     each page.

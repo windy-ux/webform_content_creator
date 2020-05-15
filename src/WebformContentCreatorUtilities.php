@@ -21,6 +21,22 @@ class WebformContentCreatorUtilities {
   const CONTENT_BASIC_FIELDS = ['body', 'status', 'uid'];
 
   /**
+   * Function to check whether an Webform content creator entity exists.
+   * 
+   * @param string $id
+   *   Webform Content Creator id.
+   * 
+   * @return bool
+   *   True, if the entity already exists.
+   */
+  public static function existsWebformContentCreatorEntity($id) {
+    $entity = \Drupal::entityQuery('webform_content_creator')
+      ->condition('id', $id)
+      ->execute();
+    return (bool) $entity;
+  }
+
+  /**
    * Contructs a tree with webform elements which can be used in Selects.
    *
    * @param array $elements

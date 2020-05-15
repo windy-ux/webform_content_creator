@@ -4,7 +4,6 @@ namespace Drupal\webform_content_creator\Form;
 
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\webform_content_creator\WebformContentCreatorUtilities;
 
 /**
@@ -141,13 +140,16 @@ class WebformContentCreatorForm extends EntityForm {
   }
 
   /**
-   * Function to check whether an Webform content creator entity exists.
+   * Helper function to check whether a Webform content creator entity exists.
+   *
+   * @param string $id
+   *   Entity id.
+   *
+   * @return bool
+   *   True if entity already exists.
    */
   public function exist($id) {
-    $entity = \Drupal::entityQuery('webform_content_creator')
-      ->condition('id', $id)
-      ->execute();
-    return (bool) $entity;
+    return WebformContentCreatorUtilities::existsWebformContentCreatorEntity($id);
   }
 
 }
