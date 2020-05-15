@@ -22,10 +22,10 @@ class WebformContentCreatorUtilities {
 
   /**
    * Function to check whether an Webform content creator entity exists.
-   * 
+   *
    * @param string $id
    *   Webform Content Creator id.
-   * 
+   *
    * @return bool
    *   True, if the entity already exists.
    */
