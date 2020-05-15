@@ -5,7 +5,7 @@
   Drupal.behaviors.webformContentCreator = {
 
     attach: function (context) {
-      function validateContentType (element) {
+      function validateContentType(element) {
         if (!element) {
           return;
         }
