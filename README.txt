@@ -38,15 +38,16 @@ CONFIGURATION
    4. Give a title to Webform Content Creator entity and choose a Webform and a
       Content Type, in order to have mappings between Webform submission values
       and node field values, and then click on "Save";
-   5. In the configuration page (/admin/config/webform_content_creator), click on
-      "Manage fields" on the entity you have just created;
-   6. In the "Title" input, you can give a title to the node that is created after
-      submitting the Webform (tokens may be used);
-   7. After that, you have the possibility to choose the Node fields used in the
-      mapping;
-   8. When choosing a Node field (checkbox on the left side of each field name),
-      a Webform field can be choosen to match with this Node field (optionally, 
-      you can provide a custom text instead, using available tokens).
+   5. In the configuration page (/admin/config/webform_content_creator), click
+      on "Manage fields" on the entity you have just created;
+   6. In the "Title" input, you can give a title to the node that is created
+      after submitting the Webform (tokens may be used);
+   7. After that, you have the possibility to choose the Node fields used in
+      the mapping;
+   8. When choosing a Node field (checkbox on the left side of each field name)
+      , a Webform field can be choosen to match with this Node field
+      (optionally, you can provide a custom text instead, using available
+      tokens).
 
  * Configure the user permissions in Administration » People » Permissions:
 
