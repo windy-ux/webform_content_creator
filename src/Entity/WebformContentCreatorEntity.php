@@ -13,6 +13,7 @@ use Drupal\webform_content_creator\WebformContentCreatorUtilities;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\Component\Utility\Html;
 
 /**
  * Defines the Webform Content creator entity.
@@ -395,12 +396,15 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $encryptionProfile = $this->getProfileName();
 
     // Decrypt title.
-    $decrypted_title = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
+    $decryptedTitle = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
+
+    // Decode HTML entities, returning them to their original UTF-8 characters.
+    $decodedTitle = Html::decodeEntities($decryptedTitle);
 
     // Create new node.
     $content = Node::create([
       WebformContentCreatorInterface::TYPE => $this->getContentType(),
-      'title' => $decrypted_title,
+      'title' => $decodedTitle,
     ]);
 
     // Set node fields values.
@@ -473,7 +477,10 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $encryptionProfile = $this->getProfileName();
 
     // Decrypt title.
-    $decrypted_title = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
+    $decryptedTitle = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
+
+    // Decode HTML entities, returning them to their original UTF-8 characters.
+    $decodedTitle = Html::decodeEntities($decryptedTitle);
 
     // Get nodes created from this webform submission.
     $nodes = \Drupal::entityTypeManager()
@@ -495,7 +502,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     }
 
     // Set title.
-    $content->setTitle($decrypted_title);
+    $content->setTitle($decodedTitle);
 
     // Set node fields values.
     $attributes = $this->get(WebformContentCreatorInterface::ELEMENTS);
