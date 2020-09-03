@@ -12,6 +12,7 @@ use Drupal\webform_content_creator\WebformContentCreatorInterface;
 use Drupal\webform_content_creator\WebformContentCreatorUtilities;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 
 /**
  * Defines the Webform Content creator entity.
@@ -627,12 +628,14 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $dateType = $fields[$fieldId]->getSettings()['datetime_type'];
     if ($dateType === 'datetime') {
       $formatted = \Drupal::service('date.formatter')->format(
-        $dateTime->getTimestamp(), 'custom', 'Y-m-d\Th:i:s'
+        $dateTime->getTimestamp(), 'custom',
+        DateTimeItemInterface::DATETIME_STORAGE_FORMAT, 'UTC'
       );
     }
     else {
       $formatted = \Drupal::service('date.formatter')->format(
-        $dateTime->getTimestamp(), 'custom', 'Y-m-d'
+        $dateTime->getTimestamp(), 'custom', 
+        DateTimeItemInterface::DATE_STORAGE_FORMAT, 'UTC'
       );
     }
 
