@@ -1,10 +1,24 @@
+/**
+ * @file
+ * Defines the behavior of the webform content creator configuration page.
+ */
+
 (function ($, Drupal) {
 
   'use strict';
 
+  /**
+   * Attaches the behavior of the webform content creator configuration page
+   * to manage fields.
+   */
   Drupal.behaviors.webformContentCreator = {
 
     attach: function (context) {
+
+      /**
+       * Handler to enable/disable fields depending on the first checkbox
+       * value.
+       */
       function validateContentType(element) {
         if (!element) {
           return;
@@ -36,6 +50,10 @@
         }
       }
 
+      /**
+       * Handler to enable/disable fields depending on the custom (checkbox)
+       * value.
+       */
       function validateCustomCheck(element) {
         if (!element) {
           return;
