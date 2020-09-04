@@ -47,6 +47,14 @@ class WebformContentCreatorUtilities {
    */
   private static function buildTree(array $elements) {
     $elementsDefinitions = \Drupal::service('plugin.manager.webform.element')->getDefinitions();
+    $layoutElements = [
+      'webform_wizard_page',
+      'container',
+      'details',
+      'fieldset',
+      'webform_flexbox',
+    ];
+
     $result = [];
     $webformFieldIds = array_keys($elements);
     // Default value, only used if there are no wizard pages in webform.
@@ -68,7 +76,7 @@ class WebformContentCreatorUtilities {
         }
       }
 
-      if ($elements[$v]["#type"] === 'webform_wizard_page' || $elements[$v]["#type"] === 'webform_flexbox' || $elements[$v]["#type"] === 'fieldset') {
+      if (in_array($elements[$v]["#type"], $layoutElements, TRUE)) {
         if ($elements[$v]["#webform_parent_key"] !== '') {
           continue;
         }
