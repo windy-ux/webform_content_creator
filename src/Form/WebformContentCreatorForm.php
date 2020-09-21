@@ -97,6 +97,10 @@ class WebformContentCreatorForm extends EntityForm {
       ],
     ];
 
+    if (!\Drupal::service('module_handler')->moduleExists('webform_encrypt')) {
+      return $form;
+    }
+
     $form['use_encrypt'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Decrypt values'),

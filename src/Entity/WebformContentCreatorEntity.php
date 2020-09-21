@@ -279,7 +279,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $encryptionProfile = '';
     $useEncrypt = $this->get(WebformContentCreatorInterface::USE_ENCRYPT);
     if ($useEncrypt) {
-      $encryptionProfile = \Drupal::service('entity.manager')->getStorage(WebformContentCreatorInterface::ENCRYPTION_PROFILE)->load($this->getEncryptionProfile());
+      $encryptionProfile = \Drupal::service('entity_type.manager')->getStorage(WebformContentCreatorInterface::ENCRYPTION_PROFILE)->load($this->getEncryptionProfile());
     }
 
     return $encryptionProfile;
@@ -335,9 +335,9 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       return $content;
     }
     if ($attributes[$fieldId][WebformContentCreatorInterface::CUSTOM_CHECK]) {
-      $decValue = WebformContentCreatorUtilities::getDecryptedTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryptionProfile, $webform_submission);
-      if ($decValue === 'true' || $decValue === 'TRUE') {
-        $decValue = TRUE;
+      $fieldValue = WebformContentCreatorUtilities::getTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryptionProfile, $webform_submission);
+      if ($fieldValue === 'true' || $fieldValue === 'TRUE') {
+        $fieldValue = TRUE;
       }
     }
     else {
@@ -345,8 +345,8 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
         if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
           return $content;
         }
-        $decValue = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
-        if ($fields[$fieldId]->getType() === 'entity_reference' && (!is_array($decValue) && intval($decValue) === 0)) {
+        $fieldValue = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
+        if ($fields[$fieldId]->getType() === 'entity_reference' && (!is_array($fieldValue) && intval($fieldValue) === 0)) {
           $content->set($fieldId, []);
           return $content;
         }
@@ -354,25 +354,25 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       else {
         $fieldObject = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]};
         if ($fieldObject instanceof EntityReferenceFieldItemList) {
-          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
+          $fieldValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
         }
         else {
-          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
+          $fieldValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
         }
       }
     }
 
     if ($fields[$fieldId]->getType() == 'datetime') {
-      $decValue = $this->convertTimestamp($decValue, $fields, $fieldId);
+      $fieldValue = $this->convertTimestamp($fieldValue, $fields, $fieldId);
     }
 
     // Check if field's max length is exceeded.
-    $maxLength = $this->checkMaxFieldSizeExceeded($fields, $fieldId, $decValue);
+    $maxLength = $this->checkMaxFieldSizeExceeded($fields, $fieldId, $fieldValue);
     if ($maxLength === 0) {
-      $content->set($fieldId, $decValue);
+      $content->set($fieldId, $fieldValue);
     }
     else {
-      $content->set($fieldId, substr($decValue, 0, $maxLength));
+      $content->set($fieldId, substr($fieldValue, 0, $maxLength));
     }
 
     return $content;
@@ -395,11 +395,11 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
 
     $encryptionProfile = $this->getProfileName();
 
-    // Decrypt title.
-    $decryptedTitle = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
+    // Get title.
+    $title = WebformContentCreatorUtilities::getTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
 
     // Decode HTML entities, returning them to their original UTF-8 characters.
-    $decodedTitle = Html::decodeEntities($decryptedTitle);
+    $decodedTitle = Html::decodeEntities($title);
 
     // Create new node.
     $content = Node::create([
@@ -476,11 +476,11 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
 
     $encryptionProfile = $this->getProfileName();
 
-    // Decrypt title.
-    $decryptedTitle = WebformContentCreatorUtilities::getDecryptedTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
+    // Get title.
+    $title = WebformContentCreatorUtilities::getTokenValue($nodeTitle, $encryptionProfile, $webform_submission);
 
     // Decode HTML entities, returning them to their original UTF-8 characters.
-    $decodedTitle = Html::decodeEntities($decryptedTitle);
+    $decodedTitle = Html::decodeEntities($title);
 
     // Get nodes created from this webform submission.
     $nodes = \Drupal::entityTypeManager()
@@ -591,13 +591,13 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    *   Content type fields.
    * @param string $k
    *   Field machine name.
-   * @param string $decValue
-   *   Decrypted value.
+   * @param string $value
+   *   Field value.
    *
    * @return int
    *   1 if maximum size is exceeded, otherwise return 0.
    */
-  public function checkMaxFieldSizeExceeded(array $fields, $k, $decValue = "") {
+  public function checkMaxFieldSizeExceeded(array $fields, $k, $value = "") {
     if (!array_key_exists($k, $fields) || empty($fields[$k])) {
       return 0;
     }
@@ -610,11 +610,11 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     if (empty($maxLength)) {
       return 0;
     }
-    if ($maxLength < strlen($decValue)) {
+    if ($maxLength < strlen($value)) {
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->notice($this->t('Problem: Field max length exceeded (truncated).'));
       return $maxLength;
     }
-    return strlen($decValue);
+    return strlen($value);
   }
 
   /**

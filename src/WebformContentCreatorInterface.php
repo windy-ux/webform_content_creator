@@ -208,12 +208,12 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
    *   Content type fields.
    * @param string $k
    *   Field machine name.
-   * @param string $decValue
-   *   Decrypted value.
+   * @param string $value
+   *   Field value.
    *
    * @return int
    *   1 if maximum size is exceeded, otherwise return 0.
    */
-  public function checkMaxFieldSizeExceeded(array $fields, $k, $decValue);
+  public function checkMaxFieldSizeExceeded(array $fields, $k, $value);
 
 }

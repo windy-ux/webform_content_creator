@@ -7,4 +7,3 @@ package: Webform
 configure: webform_content_creator.collection
 dependencies:
   - webform:webform
-  - webform_encrypt:webform_encrypt
