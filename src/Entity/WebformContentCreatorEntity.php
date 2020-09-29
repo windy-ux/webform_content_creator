@@ -54,7 +54,6 @@ use Drupal\Component\Utility\Html;
  *     "sync_content",
  *     "sync_content_delete",
  *     "sync_content_node_field",
- *     "create_nodes_manually",
  *     "elements",
  *   }
  * )
