@@ -38,22 +38,22 @@ class WebformContentCreatorForm extends EntityForm {
     ];
 
     // Select with all webforms.
-    $webforms_formatted = WebformContentCreatorUtilities::getFormattedWebforms();
+    $webforms = WebformContentCreatorUtilities::getFormattedWebforms();
     $form['webform'] = [
       '#type' => 'select',
       '#title' => $this->t('Webform'),
-      '#options' => $webforms_formatted,
+      '#options' => $webforms,
       '#default_value' => $this->entity->getWebform(),
       '#description' => $this->t("Webform title"),
       '#required' => TRUE,
     ];
 
     // Select with all content types.
-    $contentTypes_formatted = WebformContentCreatorUtilities::getFormattedContentTypes();
+    $content_types = WebformContentCreatorUtilities::getFormattedContentTypes();
     $form['content_type'] = [
       '#type' => 'select',
       '#title' => $this->t('Content type'),
-      '#options' => $contentTypes_formatted,
+      '#options' => $content_types,
       '#default_value' => $this->entity->getContentType(),
       '#description' => $this->t("Content type title"),
       '#required' => TRUE,
@@ -109,11 +109,11 @@ class WebformContentCreatorForm extends EntityForm {
     ];
 
     // Select with all encryption profiles.
-    $encryptionProfiles_formatted = WebformContentCreatorUtilities::getFormattedEncryptionProfiles();
+    $encryption_profiles = WebformContentCreatorUtilities::getFormattedEncryptionProfiles();
     $form['encryption_profile'] = [
       '#type' => 'select',
       '#title' => $this->t('Encryption profile'),
-      '#options' => $encryptionProfiles_formatted,
+      '#options' => $encryption_profiles,
       '#default_value' => $this->entity->getEncryptionProfile(),
       '#description' => $this->t("Encryption profile name"),
       '#states' => [

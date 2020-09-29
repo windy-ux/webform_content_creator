@@ -17,6 +17,8 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
 
   const WEBFORM_FIELD = 'webform_field';
 
+  const FIELD_MAPPING = 'field_mapping';
+
   const CUSTOM_CHECK = 'custom_check';
 
   const CUSTOM_VALUE = 'custom_value';
@@ -65,13 +67,13 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   /**
    * Sets the content type entity.
    *
-   * @param string $contentType
+   * @param string $content_type
    *   Content type entity.
    *
    * @return $this
    *   The Webform Content Creator entity.
    */
-  public function setContentType($contentType);
+  public function setContentType($content_type);
 
   /**
    * Returns the entity webform id.
@@ -185,6 +187,9 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
    *
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission.
+   *
+   * @return int
+   *   Result after saving content.
    */
   public function createNode(WebformSubmissionInterface $webform_submission);
 
@@ -196,24 +201,9 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
    * @param string $op
    *   Operation.
    *
-   * @return bool
-   *   True, if succeeded. Otherwise, return false.
+   * @return int
+   *   Result after saving content.
    */
   public function updateNode(WebformSubmissionInterface $webform_submission, $op);
-
-  /**
-   * Check if field maximum size is exceeded.
-   *
-   * @param array $fields
-   *   Content type fields.
-   * @param string $k
-   *   Field machine name.
-   * @param string $value
-   *   Field value.
-   *
-   * @return int
-   *   1 if maximum size is exceeded, otherwise return 0.
-   */
-  public function checkMaxFieldSizeExceeded(array $fields, $k, $value);
 
 }
