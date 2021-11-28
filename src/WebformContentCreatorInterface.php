@@ -17,7 +17,7 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
 
   const WEBFORM_FIELD = 'webform_field';
 
-  const FIELD_MAPPING = 'field_mapping';
+  const FIELD_MAPPING = 'mapping';
 
   const CUSTOM_CHECK = 'custom_check';
 
@@ -31,7 +31,7 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
 
   const SYNC_CONTENT_DELETE = 'sync_content_delete';
 
-  const SYNC_CONTENT_FIELD = 'sync_content_node_field';
+  const SYNC_CONTENT_FIELD = 'sync_content_field';
 
   const USE_ENCRYPT = 'use_encrypt';
 
@@ -49,7 +49,7 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
    * Sets the entity title.
    *
    * @param string $title
-   *   Node title.
+   *   Content title.
    *
    * @return $this
    *   The Webform Content Creator entity.
@@ -57,23 +57,42 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function setTitle($title);
 
   /**
-   * Returns the entity content type id.
+   * Returns the target entity type id.
    *
    * @return string
-   *   The entity content type.
+   *   The target entity type id.
    */
-  public function getContentType();
+  public function getEntityTypeValue();
 
   /**
-   * Sets the content type entity.
+   * Sets the target entity type id.
    *
-   * @param string $content_type
-   *   Content type entity.
+   * @param string $entityType
+   *   Target entity type id.
    *
    * @return $this
    *   The Webform Content Creator entity.
    */
-  public function setContentType($content_type);
+  public function setEntityTypeValue($entityType);
+
+  /**
+   * Returns the target bundle id.
+   *
+   * @return string
+   *   The target bundle id.
+   */
+  public function getBundleValue();
+
+  /**
+   * Sets the target bundle id.
+   *
+   * @param string $bundle
+   *   Target bundle id.
+   *
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setBundleValue($bundle);
 
   /**
    * Returns the entity webform id.
@@ -103,7 +122,7 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function getAttributes();
 
   /**
-   * Check if synchronization between nodes and webform submissions is used.
+   * Check if synchronization between content entities and webform submissions is used.
    *
    * @return bool
    *   true, when the synchronization is used. Otherwise, returns false.
@@ -119,7 +138,7 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function getSyncDeleteContentCheck();
 
   /**
-   * Get node field in which the webform submission id will be stored.
+   * Get content field in which the webform submission id will be stored.
    *
    * @return string
    *   Field machine name.
@@ -143,24 +162,44 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function getEncryptionProfile();
 
   /**
-   * Check if the content type entity exists.
+   * Check if the target entity type exists.
    *
    * @return bool
-   *   True, if content type entity exists. Otherwise, returns false.
+   *   True, if the target entity type exists. Otherwise, returns false.
    */
-  public function existsContentType();
+  public function existsEntityType();
 
   /**
-   * Check if the content type id is equal to the configured content type.
-   *
-   * @param string $ct
-   *   Content type id.
+   * Check if the target bundle exists.
    *
    * @return bool
-   *   True, if the parameter is equal to the content type id of Webform
+   *   True, if the target bundle exists. Otherwise, returns false.
+   */
+  public function existsBundle();
+
+  /**
+   * Check if the target entity type id is equal to the configured entity type.
+   *
+   * @param string $e
+   *   Target entity type id.
+   *
+   * @return bool
+   *   True, if the parameter is equal to the target entity type id of Webform
    *   content creator entity. Otherwise, returns false.
    */
-  public function equalsContentType($ct);
+  public function equalsEntityType($e);
+
+  /**
+   * Check if the target bundle id is equal to the configured bundle.
+   *
+   * @param string $bundle
+   *   Target bundle id.
+   *
+   * @return bool
+   *   True, if the parameter is equal to the target bundle id of Webform
+   *   content creator entity. Otherwise, returns false.
+   */
+  public function equalsBundle($bundle);
 
   /**
    * Check if the webform id is equal to the configured webform id.
@@ -183,27 +222,39 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
   public function statusMessage($status);
 
   /**
-   * Create node from webform submission.
+   * Create content from webform submission.
    *
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission.
-   *
-   * @return int
-   *   Result after saving content.
    */
-  public function createNode(WebformSubmissionInterface $webform_submission);
+  public function createContent(WebformSubmissionInterface $webform_submission);
 
   /**
-   * Update node from webform submission.
+   * Update content from webform submission.
    *
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission.
    * @param string $op
    *   Operation.
    *
-   * @return int
-   *   Result after saving content.
+   * @return bool
+   *   True, if succeeded. Otherwise, return false.
    */
-  public function updateNode(WebformSubmissionInterface $webform_submission, $op);
+  public function updateContent(WebformSubmissionInterface $webform_submission, $op);
+
+  /**
+   * Check if field maximum size is exceeded.
+   *
+   * @param array $fields
+   *   Content type fields.
+   * @param string $k
+   *   Field machine name.
+   * @param string $decValue
+   *   Decrypted value.
+   *
+   * @return int
+   *   1 if maximum size is exceeded, otherwise return 0.
+   */
+  public function checkMaxFieldSizeExceeded(array $fields, $k, $decValue);
 
 }

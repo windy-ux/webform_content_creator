@@ -21,16 +21,27 @@ use Drupal\webform_content_creator\Plugin\FieldMappingBase;
  */
 class LinkFieldMapping extends FieldMappingBase {
 
+  /**
+   * {@inheritdoc}
+   */
+  public function supportsCustomFields() {
+    return TRUE;
+  }
+
   public function getSupportedWebformFields($webform_id) {
-    $supported_types = ["url"];
+    $supported_types = ["url", "string"];
 
     return $this->filterWebformFields($webform_id, $supported_types);
   }
 
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition) {
-    $field_id = $field_definition->getName();
-    $field_value = $data[$field_id];
+  public function getEntityComponentFields(FieldDefinitionInterface $field_definition) {
+    return ['uri', 'title'];
+  }
 
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
+    $field_id = $field_definition->getName();
+    $field_value['uri'] = $data[$field_id];
+    $field_value['title'] = $data[$field_id];
     $content->set($field_id, $field_value);
   }
 

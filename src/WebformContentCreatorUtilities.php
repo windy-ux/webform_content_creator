@@ -2,7 +2,6 @@
 
 namespace Drupal\webform_content_creator;
 
-use Drupal\node\Entity\NodeType;
 use Drupal\webform\WebformSubmissionInterface;
 
 /**
@@ -46,8 +45,8 @@ class WebformContentCreatorUtilities {
    *   Tree with webform elements
    */
   private static function buildTree(array $elements) {
-    $definitions = \Drupal::service('plugin.manager.webform.element')->getDefinitions();
-    $layout_elements = [
+    $elementsDefinitions = \Drupal::service('plugin.manager.webform.element')->getDefinitions();
+    $layoutElements = [
       'webform_wizard_page',
       'container',
       'details',
@@ -56,13 +55,13 @@ class WebformContentCreatorUtilities {
     ];
 
     $result = [];
-    $webform_field_ids = array_keys($elements);
+    $webformFieldIds = array_keys($elements);
     // Default value, only used if there are no wizard pages in webform.
     $wizardPage = t('Webform elements');
     // Check which element is the first wizard page (in case it exists)
     $flag = 0;
     $aux = [];
-    foreach ($webform_field_ids as $v) {
+    foreach ($webformFieldIds as $v) {
       if ($v === 'actions') {
         continue;
       }
@@ -76,37 +75,37 @@ class WebformContentCreatorUtilities {
         }
       }
 
-      if (in_array($elements[$v]["#type"], $layout_elements, TRUE)) {
+      if (in_array($elements[$v]["#type"], $layoutElements, TRUE)) {
         if ($elements[$v]["#webform_parent_key"] !== '') {
           continue;
         }
         // Executes only for the first wizard page (first optgroup in select)
         if ($flag === 0) {
-          $wizard_page = html_entity_decode($title);
+          $wizardPage = html_entity_decode($title);
           unset($aux);
           $flag++;
           continue;
         }
         if (!empty($aux)) {
           foreach ($aux as $k2 => $v2) {
-            $result[$wizard_page][$k2] = $v2;
+            $result[$wizardPage][$k2] = $v2;
           }
         }
-        $wizard_page = html_entity_decode($title);
+        $wizardPage = html_entity_decode($title);
         unset($aux);
       }
       // Check if element has not parents.
       elseif ($elements[$v]["#webform_parent_key"] === '') {
-        $result['0,' . $v] = html_entity_decode($title) . ' (' . $v . ') - ' . $definitions[$elements[$v]["#type"]]['label'];
+        $result['0,' . $v] = html_entity_decode($title) . ' (' . $v . ') - ' . $elementsDefinitions[$elements[$v]["#type"]]['label'];
       }
       // Skip webform sections (not shown in selects)
       elseif ($elements[$v]["#type"] !== "webform_section") {
-        $aux['0,' . $v] = html_entity_decode($title) . ' (' . $v . ') - ' . $definitions[$elements[$v]["#type"]]['label'];
+        $aux['0,' . $v] = html_entity_decode($title) . ' (' . $v . ') - ' . $elementsDefinitions[$elements[$v]["#type"]]['label'];
       }
     }
     // Organize webform elements as a tree (wizard pages as optgroups)
     foreach ($aux as $k2 => $v2) {
-      $result[$wizard_page][$k2] = $v2;
+      $result[$wizardPage][$k2] = $v2;
     }
     return $result;
   }
@@ -134,10 +133,10 @@ class WebformContentCreatorUtilities {
     // Webform elements.
     $elements = $webform->getElementsInitializedAndFlattened();
     // Webform elements organized in a structured tree.
-    $result = self::buildTree($elements);
+    $webformOptions = self::buildTree($elements);
     // Join with basic webform properties.
-    $result[t('Webform properties')->render()] = $options;
-    return $result;
+    $webformOptions[t('Webform properties')->render()] = $options;
+    return $webformOptions;
   }
 
   /**
@@ -161,102 +160,67 @@ class WebformContentCreatorUtilities {
     }
 
     // Get webform submission storage.
-    $submission_storage = \Drupal::entityTypeManager()->getStorage(self::WEBFORM_SUBMISSION);
-    $submission_storage_definitions = $submission_storage->getFieldDefinitions();
-    if (empty($submission_storage_definitions)) {
+    $submissionStorage = \Drupal::entityTypeManager()->getStorage(self::WEBFORM_SUBMISSION);
+    $submissionStorageDefinitions = $submissionStorage->getFieldDefinitions();
+    if (empty($submissionStorageDefinitions)) {
       return NULL;
     }
 
     // Get webform basic attributes definitions.
-    $result = $submission_storage->checkFieldDefinitionAccess($webform, $submission_storage_definitions);
-    if (empty($result)) {
+    $fieldDefinitions = $submissionStorage->checkFieldDefinitionAccess($webform, $submissionStorageDefinitions);
+    if (empty($fieldDefinitions)) {
       return NULL;
     }
 
     // Get webform elements and merge with the webform basic attributes.
     $elements = $webform->getElementsInitializedAndFlattened();
     if (is_array($elements)) {
-      $webform_field_ids = array_keys($elements);
-      foreach ($webform_field_ids as $v) {
+      $webformFieldIds = array_keys($elements);
+      foreach ($webformFieldIds as $v) {
         if (!isset($elements[$v]) || empty($elements[$v])) {
           continue;
         }
-        $result[$v] = $elements[$v]['#type'];
+        $fieldDefinitions[$v] = $elements[$v]['#type'];
       }
     }
-    return $result;
+    return $fieldDefinitions;
   }
 
   /**
-   * Return the content type fields.
+   * Return the bundle fields.
    *
-   * @param Drupal\node\Entity\NodeType $content_type
-   *   Content type entity.
+   * @param string $entity_type_id
+   *   Entity type id.
+   * @param mixed $bundle_id
+   *   Bundle id.
    *
    * @return array
-   *   Content type fields
+   *   Bundle fields
    */
-  public static function contentTypeFields(NodeType $content_type) {
-    $entity_manager = \Drupal::service(self::ENTITY_MANAGER);
+  public static function bundleFields($entity_type_id, $bundle_id) {
+    $entityManager = \Drupal::service(self::ENTITY_MANAGER);
     $fields = [];
 
-    if (!empty($content_type)) {
-      $fields = $entity_manager->getFieldDefinitions('node', $content_type->getOriginalId());
+    if (!empty($bundle_id)) {
+      $fields = $entityManager->getFieldDefinitions($entity_type_id, $bundle_id);
     }
     return $fields;
   }
 
   /**
-   * Get content type fields, except the basic fields from node type entity.
+   * Get bundle fields, except the basic fields.
    *
-   * @param Drupal\node\Entity\NodeType $content_type
-   *   Content type entity.
-   *
-   * @return array
-   *   Associative array Content type fields
-   */
-  public static function getContentFieldsIds(NodeType $content_type) {
-    $node_fields = self::contentTypeFields($content_type);
-    $ids = array_keys($node_fields);
-    return array_filter($ids, function ($fid) {
-      return strpos($fid, 'field_') === 0 || in_array($fid, self::CONTENT_BASIC_FIELDS);
-    });
-  }
-
-  /**
-   * Get all content type ids.
+   * @param string $entity_type_id
+   *   Entity type id.
+   * @param mixed $bundle_id
+   *   Bundle id.
    *
    * @return array
-   *   Array with all content type ids.
+   *   Associative array bundle fields
    */
-  public static function getAllContentTypeIds() {
-    return \Drupal::service(self::ENTITY_TYPE_MANAGER)->getStorage('node_type')->getQuery()->execute();
-  }
-
-  /**
-   * Get all content type entities.
-   *
-   * @return array
-   *   All content type entities.
-   */
-  public static function getAllContentTypes() {
-    $ids = self::getAllContentTypeIds();
-    return \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple(array_keys($ids));
-  }
-
-  /**
-   * Get an associative array with content type ids and respective labels.
-   *
-   * @return array
-   *   Associative array with content type ids and labels.
-   */
-  public static function getFormattedContentTypes() {
-    $content_types = self::getAllContentTypes();
-    $result = [];
-    foreach ($content_types as $k => $v) {
-      $result[$k] = $v->label();
-    }
-    return $result;
+  public static function getBundleIds($entity_type_id, $bundle_id) {
+    $bundleFields = self::bundleFields($entity_type_id, $bundle_id);
+    return array_keys($bundleFields);
   }
 
   /**
@@ -290,18 +254,18 @@ class WebformContentCreatorUtilities {
    */
   public static function getFormattedWebforms() {
     $webforms = self::getAllWebforms();
-    $result = [];
+    $webforms_formatted = [];
     foreach ($webforms as $k => $v) {
       $category = $v->get('category');
       if (empty($category)) {
-        $result[$k] = $v->label();
+        $webforms_formatted[$k] = $v->label();
       }
       else {
-        $result[$category][$k] = $v->label();
+        $webforms_formatted[$category][$k] = $v->label();
       }
     }
 
-    return $result;
+    return $webforms_formatted;
   }
 
   /**
@@ -311,16 +275,16 @@ class WebformContentCreatorUtilities {
    *   Associative array with encryption profiles ids and labels.
    */
   public static function getFormattedEncryptionProfiles() {
-    $profiles = [];
-    $module_handler = \Drupal::service('module_handler');
-    if ($module_handler->moduleExists('encrypt')) {
-      $profiles = \Drupal::service(self::ENTITY_TYPE_MANAGER)->getStorage('encryption_profile')->loadMultiple();
+    $encryption_profiles = [];
+    $moduleHandler = \Drupal::service('module_handler');
+    if ($moduleHandler->moduleExists('encrypt')) {
+      $encryption_profiles = \Drupal::service(self::ENTITY_TYPE_MANAGER)->getStorage('encryption_profile')->loadMultiple();
     }
-    $result = [];
-    foreach ($profiles as $k => $v) {
-      $result[$k] = $v->label();
+    $encryption_profiles_formatted = [];
+    foreach ($encryption_profiles as $k => $v) {
+      $encryption_profiles_formatted[$k] = $v->label();
     }
-    return $result;
+    return $encryption_profiles_formatted;
   }
 
   /**
@@ -335,21 +299,21 @@ class WebformContentCreatorUtilities {
    *   Decrypted value
    */
   public static function getDecryptedValue($value, $encryption_profile) {
-    $result = FALSE;
     if (empty($value) || empty($encryption_profile)) {
       return '';
     }
+    $dec_value = FALSE;
     if (\Drupal::service('module_handler')->moduleExists('encrypt')) {
-      $result = \Drupal::service('encryption')->decrypt($value, $encryption_profile);
+      $dec_value = \Drupal::service('encryption')->decrypt($value, $encryption_profile);
     }
-    if ($result === FALSE) {
-      $result = $value;
+    if ($dec_value === FALSE) {
+      $dec_value = $value;
     }
-    return $result;
+    return $dec_value;
   }
 
   /**
-   * Get values inside text with tokens.
+   * Get decrypted values inside text with tokens.
    *
    * @param string $value
    *   String with tokens.
@@ -363,7 +327,7 @@ class WebformContentCreatorUtilities {
    * @return string
    *   Token value.
    */
-  public static function getTokenValue($value, $encryption_profile, WebformSubmissionInterface $webform_submission, $type = self::WEBFORM_SUBMISSION) {
+  public static function getDecryptedTokenValue($value, $encryption_profile, WebformSubmissionInterface $webform_submission, $type = self::WEBFORM_SUBMISSION) {
     if (empty($value) || empty($webform_submission)) {
       return '';
     }
@@ -378,16 +342,20 @@ class WebformContentCreatorUtilities {
       $token_value = \Drupal::token()->replace($val, [self::WEBFORM_SUBMISSION => $webform_submission]);
       if (!empty($encryption_profile)) {
         // Decrypt single token value.
-        $token_value = self::getDecryptedValue($token_value, $encryption_profile);
+        $dec_token_value = self::getDecryptedValue($token_value, $encryption_profile);
+      }
+      else {
+        $dec_token_value = $token_value;
       }
       $token_keys[] = $val;
-      $token_values[] = $token_value;
+      $token_values[] = $dec_token_value;
     }
     if (empty($token_values)) {
       return $value;
     }
     // Replace all token values in string.
-    return str_replace($token_keys, $token_values, $value);
+    $dec_value = str_replace($token_keys, $token_values, $value);
+    return $dec_value;
   }
 
 }

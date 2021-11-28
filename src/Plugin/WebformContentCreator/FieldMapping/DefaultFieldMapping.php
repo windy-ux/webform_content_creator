@@ -21,7 +21,7 @@ class DefaultFieldMapping extends FieldMappingBase {
   /**
    * {@inheritdoc}
    */
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition) {
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
     return parent::mapEntityField($content, $webform_element, $data, $field_definition);
   }
 

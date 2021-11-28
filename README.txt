@@ -9,8 +9,8 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
- * This module provides the ability to create nodes after submitting webforms,
-  and do mappings between the fields of the created node and webform 
+ * This module provides the ability to create content entities after submitting webforms,
+  and do mappings between the fields of the created content and webform 
   submission values.
 
 REQUIREMENTS
@@ -37,15 +37,15 @@ CONFIGURATION
    3. Click on "Add configuration";
    4. Give a title to Webform Content Creator entity and choose a Webform and a
       Content Type, in order to have mappings between Webform submission values
-      and node field values, and then click on "Save";
+      and content field values, and then click on "Save";
    5. In the configuration page (/admin/config/webform_content_creator), click
       on "Manage fields" on the entity you have just created;
-   6. In the "Title" input, you can give a title to the node that is created
+   6. In the "Title" input, you can give a title to the content that is created
       after submitting the Webform (tokens may be used);
-   7. After that, you have the possibility to choose the Node fields used in
+   7. After that, you have the possibility to choose the Content entity fields used in
       the mapping;
-   8. When choosing a Node field (checkbox on the left side of each field name)
-      , a Webform field can be choosen to match with this Node field
+   8. When choosing a Content field (checkbox on the left side of each field name)
+      , a Webform field can be choosen to match with this Content field
       (optionally, you can provide a custom text instead, using available
       tokens).
 

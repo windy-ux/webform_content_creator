@@ -4,9 +4,8 @@ namespace Drupal\webform_content_creator\Entity;
 
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\webform\WebformSubmissionInterface;
-use Drupal\node\Entity\Node;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\webform_content_creator\WebformContentCreatorInterface;
 use Drupal\webform_content_creator\WebformContentCreatorUtilities;
@@ -16,11 +15,11 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\Component\Utility\Html;
 
 /**
- * Defines the Webform Content creator entity.
+ * Defines the Webform Content Creator entity.
  *
  * @ConfigEntityType(
  *   id = "webform_content_creator",
- *   label = @Translation("Webform Content creator"),
+ *   label = @Translation("Webform Content Creator"),
  *   handlers = {
  *     "list_builder" = "Drupal\webform_content_creator\Controller\WebformContentCreatorListBuilder",
  *     "form" = {
@@ -37,6 +36,8 @@ use Drupal\Component\Utility\Html;
  *     "title" = "title",
  *     "webform" = "webform",
  *     "content_type" = "content_type",
+ *     "target_entity_type" = "target_entity_type",
+ *     "target_bundle" = "target_bundle",
  *   },
  *   links = {
  *     "manage-fields-form" = "/admin/config/webform_content_creator/manage/{webform_content_creator}/fields",
@@ -47,14 +48,17 @@ use Drupal\Component\Utility\Html;
  *     "id",
  *     "title",
  *     "webform",
- *     "content_type",
  *     "field_title",
  *     "use_encrypt",
  *     "encryption_profile",
  *     "sync_content",
  *     "sync_content_delete",
  *     "sync_content_node_field",
+ *     "sync_content_field",
  *     "elements",
+ *     "content_type",
+ *     "target_entity_type",
+ *     "target_bundle",
  *   }
  * )
  */
@@ -77,7 +81,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   protected $title;
 
   /**
-   * Node title.
+   * Content title.
    *
    * @var string
    */
@@ -91,14 +95,21 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   protected $webform;
 
   /**
-   * Content type machine name.
+   * Target entity type machine name.
    *
    * @var string
    */
-  protected $content_type;
+  protected $target_entity_type;
 
   /**
-   * Mapping between webform submission values and node field values.
+   * Target bundle machine name.
+   *
+   * @var string
+   */
+  protected $target_bundle;
+
+  /**
+   * Mapping between webform submission values and content field values.
    *
    * @var array
    */
@@ -132,7 +143,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    * Sets the entity title.
    *
    * @param string $title
-   *   Node title.
+   *   Content title.
    *
    * @return $this
    *   The Webform Content Creator entity.
@@ -143,26 +154,58 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Returns the entity content type id.
+   * Returns the target entity type id.
    *
    * @return string
-   *   The entity content type.
+   *   The target entity type id.
    */
-  public function getContentType() {
-    return $this->get('content_type');
+  public function getEntityTypeValue() {
+    $result = $this->get('target_entity_type');
+    if (empty($result)) {
+      $result = 'node';
+    }
+    return $result;
   }
 
   /**
-   * Sets the content type entity.
+   * Sets the target entity type id.
    *
-   * @param string $content_type
-   *   Content type entity.
+   * @param string $entityType
+   *   Target entity type id.
    *
    * @return $this
    *   The Webform Content Creator entity.
    */
-  public function setContentType($content_type) {
-    $this->set('content_type', $content_type);
+  public function setEntityTypeValue($entityType) {
+    $this->set('target_entity_type', $entityType);
+    return $this;
+  }
+
+  /**
+   * Returns the target bundle id.
+   *
+   * @return string
+   *   The target bundle id.
+   */
+  public function getBundleValue() {
+    $result = $this->get('target_bundle');
+    if (empty($result)) {
+      $result = $this->get('content_type');
+    }
+    return $result;
+  }
+
+  /**
+   * Sets the target bundle id.
+   *
+   * @param string $bundle
+   *   Target bundle id.
+   *
+   * @return $this
+   *   The Webform Content Creator entity.
+   */
+  public function setBundleValue($bundle) {
+    $this->set('target_bundle', $bundle);
     return $this;
   }
 
@@ -201,7 +244,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Check if synchronization between nodes and webform submissions is used.
+   * Check if synchronization between content entities and webform submissions is used.
    *
    * @return bool
    *   true, when the synchronization is used. Otherwise, returns false.
@@ -221,7 +264,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Get node field in which the webform submission id will be stored.
+   * Get content field in which the webform submission id will be stored.
    *
    * @return string
    *   Field machine name.
@@ -251,24 +294,6 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Get node title.
-   *
-   * @return string
-   *   Node title.
-   */
-  private function getNodeTitle() {
-    // Get title.
-    if ($this->get(WebformContentCreatorInterface::FIELD_TITLE) !== NULL && $this->get(WebformContentCreatorInterface::FIELD_TITLE) !== '') {
-      $title = $this->get(WebformContentCreatorInterface::FIELD_TITLE);
-    }
-    else {
-      $title = \Drupal::entityTypeManager()->getStorage(WebformContentCreatorInterface::WEBFORM)->load($this->get(WebformContentCreatorInterface::WEBFORM))->label();
-    }
-
-    return $title;
-  }
-
-  /**
    * Get encryption profile name.
    *
    * @return string
@@ -285,17 +310,17 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Get decrypted value with the configured encryption profile.
+   * Get webform submission value.
    *
    * @param string $value
-   *   Encrypted value.
+   *   Webform submission value.
    * @param string $profile
-   *   Encryption profile name.
+   *   (Optional) Encryption profile name.
    *
    * @return string
    *   Encryption profile used to encrypt/decrypt $value
    */
-  private function getDecryptionFromProfile($value, $profile = '') {
+  private function getWebformSubmissionValue($value, $profile = '') {
     if ($this->getEncryptionCheck()) {
       $result = WebformContentCreatorUtilities::getDecryptedValue($value, $profile);
     }
@@ -306,127 +331,91 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Use a single mapping to set a Node field value.
+   * Use a single mapping to set a Content field value.
    *
-   * @param \Drupal\Core\Entity\ContentEntityInterface $initial_content
-   *   Content being mapped with a webform submission.
+   * @param \Drupal\Core\Entity\EntityInterface $initialContent
+   *   Content entity being mapped with a webform submission.
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission entity.
    * @param array $fields
-   *   Node fields.
-   * @param array $webform_fields
-   *   Webform fields (flattened).
+   *   Content entity fields.
    * @param array $data
    *   Webform submission data.
-   * @param string $encryption_profile
+   * @param string $encryptionProfile
    *   Encryption profile used in Webform encrypt module.
-   * @param string $field_id
-   *   Node field id.
+   * @param string $fieldId
+   *   Content field id.
    * @param array $mapping
-   *   Single mapping between node and webform submissions.
+   *   Single mapping between content entity and webform submission.
    * @param array $attributes
-   *   All mapping values between Node and Webform submission values.
+   *   All mapping values between Content entity and Webform submission values.
    *
-   * @return \Drupal\Core\Entity\ContentEntityInterface
-   *   Created node.
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   Created content entity.
    */
-  private function mapNodeField(ContentEntityInterface $initial_content, WebformSubmissionInterface $webform_submission, array $fields = [], array $webform_fields = [], array $data = [], $encryption_profile = '', $field_id = '', array $mapping = [], array $attributes = []) {
-    $content = $initial_content;
-    $webform = $webform_submission->getWebform();
-
-    if (!$content->hasField($field_id) || !is_array($mapping)) {
+  private function mapContentField(EntityInterface $initialContent, WebformSubmissionInterface $webform_submission, array $fields = [], array $data = [], $encryptionProfile = '', $fieldId = '', array $mapping = [], array $attributes = []) {
+    $content = $initialContent;
+    if (!$content->hasField($fieldId) || !is_array($mapping)) {
       return $content;
     }
-
-    // Get the field mapping plugin.
-    $field_mapping = \Drupal::service('plugin.manager.webform_content_creator.field_mapping')->getPlugin($attributes[$field_id][WebformContentCreatorInterface::FIELD_MAPPING]);
-
-    $component_fields = $field_mapping->getEntityComponentFields($fields[$field_id]);
-    $values = [];
-    $webform_element = [];
-    if (sizeOf($component_fields) > 0) {
-      foreach ($component_fields as $component_field) {
-        $webform_element[$component_field] = $webform->getElement($mapping[$component_field][WebformContentCreatorInterface::WEBFORM_FIELD], FALSE);
-        // If the custom check functionality is active then we do need to evaluate
-        // webform fields.
-        if ($attributes[$field_id][WebformContentCreatorInterface::CUSTOM_CHECK]) {
-          $field_value = WebformContentCreatorUtilities::getTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryption_profile, $webform_submission);
-        }
-        else {
-          if (!$attributes[$field_id][WebformContentCreatorInterface::TYPE]) {
-            if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
-              return $content;
-            }
-            $field_value = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryption_profile);
-            if ($fields[$field_id]->getType() === 'entity_reference' && (!is_array($field_value) && intval($field_value) === 0)) {
-              $content->set($field_id, []);
-              return $content;
-            }
-          }
-          else {
-            $field_object = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]};
-            if ($field_object instanceof EntityReferenceFieldItemList) {
-              $field_value = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
-            }
-            else {
-              $field_value = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
-            }
-
-          }
-        }
-        $values[$component_field] = $field_value;
+    if ($attributes[$fieldId][WebformContentCreatorInterface::CUSTOM_CHECK]) {
+      $decValue = WebformContentCreatorUtilities::getDecryptedTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryptionProfile, $webform_submission);
+      if ($decValue === 'true' || $decValue === 'TRUE') {
+        $decValue = TRUE;
       }
-    } else {
-      // If the custom check functionality is active then we do need to evaluate
-      // webform fields.
-      if ($attributes[$field_id][WebformContentCreatorInterface::CUSTOM_CHECK]) {
-        $field_value = WebformContentCreatorUtilities::getTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryption_profile, $webform_submission);
+    }
+    else {
+      if (!$attributes[$fieldId][WebformContentCreatorInterface::TYPE]) {
+        if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
+          return $content;
+        }
+        $decValue = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
+        if ($fields[$fieldId]->getType() === 'entity_reference' && (!is_array($decValue) && intval($decValue) === 0)) {
+          $content->set($fieldId, []);
+          return $content;
+        }
       }
       else {
-        if (!$attributes[$field_id][WebformContentCreatorInterface::TYPE]) {
-          if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
-            return $content;
-          }
-          $field_value = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryption_profile);
-          if ($fields[$field_id]->getType() === 'entity_reference' && (!is_array($field_value) && intval($field_value) === 0)) {
-            $content->set($field_id, []);
-            return $content;
-          }
+        $fieldObject = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]};
+        if ($fieldObject instanceof EntityReferenceFieldItemList) {
+          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
         }
         else {
-          $field_object = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]};
-          if ($field_object instanceof EntityReferenceFieldItemList) {
-            $field_value = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
-          }
-          else {
-            $field_value = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
-          }
-
+          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
         }
       }
-      $values[$field_id] = $field_value;
-    }
-    if ($fields[$field_id]->getType() == 'datetime') {
-      $field_value = $this->convertTimestamp($fields, $field_id, $field_value);
     }
 
-    // Map the field type using the selected field mapping.
-    $field_value = $field_mapping->mapEntityField($content, $webform_element, $values, $fields[$field_id]);
+    if ($fields[$fieldId]->getType() == 'datetime') {
+      $decValue = $this->convertTimestamp($decValue, $fields, $fieldId);
+    }
+
+    // Check if field's max length is exceeded.
+    $maxLength = $this->checkMaxFieldSizeExceeded($fields, $fieldId, $decValue);
+    if ($maxLength === 0) {
+      $content->set($fieldId, $decValue);
+    }
+    else {
+      $content->set($fieldId, substr($decValue, 0, $maxLength));
+    }
 
     return $content;
   }
 
   /**
-   * Create node from webform submission.
+   * Create content entity from webform submission.
    *
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission.
-   * 
-   * @return int
-   *   Result after saving content.
    */
-  public function createNode(WebformSubmissionInterface $webform_submission) {
-    $node_title = $this->getNodeTitle();
+  public function createContent(WebformSubmissionInterface $webform_submission) {
+    $entity_type_id = $this->getEntityTypeValue();
+    $bundle_id = $this->getBundleValue();
+
+    $fields = WebformContentCreatorUtilities::bundleFields($entity_type_id, $bundle_id);
+    if (empty($fields)) {
+      return FALSE;
+    }
 
     // Get webform submission data.
     $data = $webform_submission->getData();
@@ -434,117 +423,83 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       return 0;
     }
 
-    $encryption_profile = $this->getProfileName();
+    $encryptionProfile = $this->getProfileName();
 
-    // Get title.
-    $title = WebformContentCreatorUtilities::getTokenValue($node_title, $encryption_profile, $webform_submission);
+    $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type_id);
 
-    // Decode HTML entities, returning them to their original UTF-8 characters.
-    $decoded_title = Html::decodeEntities($title);
-
-    // Create new node.
-    $content = Node::create([
-      WebformContentCreatorInterface::TYPE => $this->getContentType(),
-      'title' => $decoded_title,
+    // Create new content.
+    $content = \Drupal::entityTypeManager()->getStorage($entity_type_id)->create([
+      $entity_type->getKey('bundle') => $this->getBundleValue(),
     ]);
 
-    // Set node fields values.
+    // Set content fields values.
     $attributes = $this->get(WebformContentCreatorInterface::ELEMENTS);
 
-    $content_type = \Drupal::entityTypeManager()->getStorage('node_type')->load($this->getContentType());
-    if (empty($content_type)) {
-      return 0;
+    if (!$this->existsBundle()) {
+      return FALSE;
     }
 
-    // Get the webform fields flattened to identify field types.
-    $webform = $webform_submission->getWebform();
-    $webform_fields = [];
-    if ($webform) {
-      $webform_fields = $webform->getElementsDecodedAndFlattened();
-    }
-
-    $fields = WebformContentCreatorUtilities::contentTypeFields($content_type);
-    if (empty($fields)) {
-      return 0;
-    }
     foreach ($attributes as $k2 => $v2) {
-      $content = $this->mapNodeField($content, $webform_submission, $fields, $webform_fields, $data, $encryption_profile, $k2, $v2, $attributes);
+      $content = $this->mapContentField($content, $webform_submission, $fields, $data, $encryptionProfile, $k2, $v2, $attributes);
     }
 
-    $result = 0;
+    $result = FALSE;
 
-    // Save node.
+    // Save content.
     try {
       $result = $content->save();
     }
     catch (\Exception $e) {
-      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred when creating a new node.'));
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred when creating a new content.'));
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
     return $result;
   }
 
   /**
-   * Update node from webform submission.
+   * Update content from webform submission.
    *
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission.
    * @param string $op
    *   Operation.
    *
-   * @return int
-   *   Result after saving content.
+   * @return bool
+   *   True, if succeeded. Otherwise, return false.
    */
-  public function updateNode(WebformSubmissionInterface $webform_submission, $op = 'edit') {
+  public function updateContent(WebformSubmissionInterface $webform_submission, $op = 'edit') {
     if (empty($this->getSyncContentField())) {
-      return 0;
+      return FALSE;
     }
 
-    $content_type = \Drupal::entityTypeManager()->getStorage('node_type')->load($this->getContentType());
-    if (empty($content_type)) {
-      return 0;
-    }
+    $entity_type_id = $this->getEntityTypeValue();
+    $bundle_id = $this->getBundleValue();
 
-    // Get the webform fields flattened to identify field types.
-    $webform = $webform_submission->getWebform();
-    $webform_fields = [];
-    if ($webform) {
-      $webform_fields = $webform->getElementsDecodedAndFlattened();
-    }
-
-    $fields = WebformContentCreatorUtilities::contentTypeFields($content_type);
+    $fields = WebformContentCreatorUtilities::bundleFields($entity_type_id, $bundle_id);
     if (empty($fields)) {
-      return 0;
+      return FALSE;
     }
 
     if (!array_key_exists($this->getSyncContentField(), $fields)) {
-      return 0;
+      return FALSE;
     }
-
-    $node_title = $this->getNodeTitle();
 
     // Get webform submission data.
     $data = $webform_submission->getData();
     if (empty($data)) {
-      return 0;
+      return FALSE;
     }
 
-    $encryption_profile = $this->getProfileName();
+    $encryptionProfile = $this->getProfileName();
 
-    // Get title.
-    $title = WebformContentCreatorUtilities::getTokenValue($node_title, $encryption_profile, $webform_submission);
-
-    // Decode HTML entities, returning them to their original UTF-8 characters.
-    $decoded_title = Html::decodeEntities($title);
-
-    // Get nodes created from this webform submission.
-    $nodes = \Drupal::entityTypeManager()
-      ->getStorage('node')
+    // Get contents created from this webform submission.
+    $contents = \Drupal::entityTypeManager()
+      ->getStorage($entity_type_id)
       ->loadByProperties([$this->getSyncContentField() => $webform_submission->id()]);
 
     // Use only first result, if exists.
-    if (!($content = reset($nodes))) {
-      return 0;
+    if (!($content = reset($contents))) {
+      return FALSE;
     }
 
     if ($op === 'delete' && !empty($this->getSyncDeleteContentCheck())) {
@@ -553,27 +508,24 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     }
 
     if (empty($this->getSyncEditContentCheck())) {
-      return 0;
+      return FALSE;
     }
 
-    // Set title.
-    $content->setTitle($decoded_title);
-
-    // Set node fields values.
+    // Set content fields values.
     $attributes = $this->get(WebformContentCreatorInterface::ELEMENTS);
 
     foreach ($attributes as $k2 => $v2) {
-      $content = $this->mapNodeField($content, $webform_submission, $fields, $webform_fields, $data, $encryption_profile, $k2, $v2, $attributes);
+      $content = $this->mapContentField($content, $webform_submission, $fields, $data, $encryptionProfile, $k2, $v2, $attributes);
     }
 
-    $result = 0;
+    $result = FALSE;
 
-    // Save node.
+    // Save content.
     try {
       $result = $content->save();
     }
     catch (\Exception $e) {
-      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred while updating node.'));
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred while updating content.'));
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
 
@@ -582,32 +534,64 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Check if the content type entity exists.
+   * Check if the entity type exists.
    *
    * @return bool
-   *   True, if content type entity exists. Otherwise, returns false.
+   *   True, if entity type exists. Otherwise, returns false.
    */
-  public function existsContentType() {
-    // Get content type id.
-    $content_type_id = $this->getContentType();
+  public function existsEntityType() {
+    // Get entity type id.
+    $entity_type_id = $this->getEntityTypeValue();
 
-    // Get content type entity.
-    $content_type_entity = \Drupal::entityTypeManager()->getStorage('node_type')->load($content_type_id);
-    return !empty($content_type_entity);
+    $entity_keys = array_keys(\Drupal::entityTypeManager()->getDefinitions());
+    return in_array($entity_type_id, $entity_keys);
   }
 
   /**
-   * Check if the content type id is equal to the configured content type.
-   *
-   * @param string $ct
-   *   Content type id.
+   * Check if the bundle exists.
    *
    * @return bool
-   *   True, if the parameter is equal to the content type id of Webform
+   *   True, if the bundle exists. Otherwise, returns false.
+   */
+  public function existsBundle() {
+    // Get entity type id.
+    $entity_type_id = $this->getEntityTypeValue();
+
+    // Get bundle id.
+    $bundle_id = $this->getBundleValue();
+
+    // Get bundles of entity type being used.
+    $bundles = \Drupal::service('entity_type.bundle.info')->getBundleInfo($entity_type_id);
+    $bundles = array_keys($bundles);
+    return in_array($bundle_id, $bundles);
+  }
+
+  /**
+   * Check if the target entity type id is equal to the configured entity type.
+   *
+   * @param string $e
+   *   Target entity type id.
+   *
+   * @return bool
+   *   True, if the parameter is equal to the target entity type id of Webform
    *   content creator entity. Otherwise, returns false.
    */
-  public function equalsContentType($ct) {
-    return $ct === $this->getContentType();
+  public function equalsEntityType($e) {
+    return $e === $this->getEntityTypeValue();
+  }
+
+  /**
+   * Check if the target bundle id is equal to the configured bundle.
+   *
+   * @param string $bundle
+   *   Target bundle id.
+   *
+   * @return bool
+   *   True, if the parameter is equal to the target bundle id of Webform
+   *   content creator entity. Otherwise, returns false.
+   */
+  public function equalsBundle($bundle) {
+    return $bundle === $this->getBundleValue();
   }
 
   /**
@@ -640,30 +624,63 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   }
 
   /**
-   * Convert timestamp value according to field type.
+   * Check if field maximum size is exceeded.
    *
    * @param array $fields
    *   Content type fields.
-   * @param string $field_id
+   * @param string $k
    *   Field machine name.
-   * @param string $value
-   *   Original datetime value.
+   * @param string $decValue
+   *   Decrypted value.
    *
-   * @return string
-   *   Converted datetime value.
+   * @return int
+   *   1 if maximum size is exceeded, otherwise return 0.
    */
-  public function convertTimestamp(array $fields, $field_id, $field_value) {
-    $date_time = new DrupalDateTime($field_value, 'UTC');
+  public function checkMaxFieldSizeExceeded(array $fields, $k, $decValue = "") {
+    if (!array_key_exists($k, $fields) || empty($fields[$k])) {
+      return 0;
+    }
+    $fieldSettings = $fields[$k]->getSettings();
+    if (empty($fieldSettings) || !array_key_exists('max_length', $fieldSettings)) {
+      return 0;
+    }
+
+    $maxLength = $fieldSettings['max_length'];
+    if (empty($maxLength)) {
+      return 0;
+    }
+    if ($maxLength < strlen($decValue)) {
+      \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->notice($this->t('Problem: Field max length exceeded (truncated).'));
+      return $maxLength;
+    }
+    return strlen($decValue);
+  }
+
+  /**
+   * Convert timestamp value according to field type.
+   *
+   * @param int $field_value
+   *   Original datetime value.
+   * @param array $fields
+   *   Bundle fields.
+   * @param int $field_id
+   *   Field machine name id.
+   *
+   * @return Timestamp
+   *   Converted value.
+   */
+  public function convertTimestamp($field_value, array $fields, $field_id) {
+    $datetime = new DrupalDateTime($field_value, 'UTC');
     $date_type = $fields[$field_id]->getSettings()['datetime_type'];
     if ($date_type === 'datetime') {
       $result = \Drupal::service('date.formatter')->format(
-        $date_time->getTimestamp(), 'custom',
+        $datetime->getTimestamp(), 'custom',
         DateTimeItemInterface::DATETIME_STORAGE_FORMAT, 'UTC'
       );
     }
     else {
       $result = \Drupal::service('date.formatter')->format(
-        $date_time->getTimestamp(), 'custom', 
+        $datetime->getTimestamp(), 'custom', 
         DateTimeItemInterface::DATE_STORAGE_FORMAT, 'UTC'
       );
     }

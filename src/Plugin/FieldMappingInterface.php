@@ -41,7 +41,7 @@ interface FieldMappingInterface extends PluginInspectionInterface {
   ];
     
   /**
-   * Returns whether the mapper supports custom field text
+   * Returns whether the mapper supports custom field text.
    *
    * @return bool
    */
@@ -73,10 +73,12 @@ interface FieldMappingInterface extends PluginInspectionInterface {
    *   Webform submission data.
    * @param FieldDefinitionInterface $field_definition
    *   Entity field defintition.
+   * @param array $attributes
+   *   Mapping attributes.
    *
    * @return \Drupal\Core\Entity\ContentEntityInterface
    *   Created content item.
    */
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition);
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []);
 
 }

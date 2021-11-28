@@ -33,26 +33,5 @@ webform_content_creator.webform_content_creator.*:
       type: string
       label: 'Synchronization field machine name'
     elements:
-      type: sequence
-      label: 'Element'
-      sequence:
-        type: mapping
-        mapping:
-          type:
-            type: boolean
-            label: 'Type'
-          content_type:
-            type: string
-            label: 'Content type'
-          webform_field:
-            type: string
-            label: 'Webform field'
-          field_mapping:
-            type: string
-            label: 'Field mapping'
-          custom_check:
-            type: boolean
-            label: 'Custom check'
-          custom_value:
-            type: string
-            label: 'Custom value'
+      type: ignore
+      label: 'Elements'

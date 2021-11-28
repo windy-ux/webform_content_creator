@@ -5,6 +5,7 @@ namespace Drupal\webform_content_creator\Controller;
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a list of Webform Content Creator entities.
@@ -15,7 +16,9 @@ class WebformContentCreatorListBuilder extends ConfigEntityListBuilder {
 
   const WEBFORM = 'webform';
 
-  const CONTENT_TYPE = 'content_type';
+  const ENTITY_TYPE = 'entity_type';
+
+  const BUNDLE = 'bundle';
 
   /**
    * Constructs the table header.
@@ -26,7 +29,8 @@ class WebformContentCreatorListBuilder extends ConfigEntityListBuilder {
   public function buildHeader() {
     $header[self::TITLE] = $this->t('Title');
     $header[self::WEBFORM] = $this->t('Webform');
-    $header[self::CONTENT_TYPE] = $this->t('Content type');
+    $header[self::ENTITY_TYPE] = $this->t('Entity type');
+    $header[self::BUNDLE] = $this->t('Bundle');
     return $header + parent::buildHeader();
   }
 
@@ -41,11 +45,14 @@ class WebformContentCreatorListBuilder extends ConfigEntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     $webform = \Drupal::entityTypeManager()->getStorage(self::WEBFORM)->load($entity->getWebform());
-    $content_type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity->getContentType());
-    if (!empty($webform) && !empty($content_type)) {
+    $entity_type_id = $entity->getEntityTypeValue();
+    $entity_type = \Drupal::entityTypeManager()->getDefinitions()[$entity_type_id];
+    $bundle = \Drupal::service('entity_type.bundle.info')->getBundleInfo($entity_type_id)[$entity->getBundleValue()];
+    if (!empty($webform) && !empty($entity_type) && !empty($bundle)) {
       $row[self::TITLE] = $entity->get('title') . ' (' . $entity->id() . ')';
       $row[self::WEBFORM] = $webform->label() . ' (' . $entity->getWebform() . ')';
-      $row[self::CONTENT_TYPE] = $content_type->label() . ' (' . $entity->getContentType() . ')';
+      $row[self::ENTITY_TYPE] = $entity_type->getLabel(). ' (' . $entity->getEntityTypeValue() . ')';
+      $row[self::BUNDLE] = $bundle['label'] . ' (' . $entity->getBundleValue() . ')';
       return $row + parent::buildRow($entity);
     }
     return parent::buildRow($entity);

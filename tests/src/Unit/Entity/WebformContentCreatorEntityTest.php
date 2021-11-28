@@ -27,8 +27,10 @@ class WebformContentCreatorEntityTest extends UnitTestCase {
     // Test entity methods.
     $entity->setTitle('testTitle');
     $this->assertEquals($entity->getTitle(), 'testTitle');
-    $entity->setContentType('ct1');
-    $this->assertEquals($entity->getContentType(), 'ct1');
+    $entity->setEntityTypeValue('et1');
+    $this->assertEquals($entity->getEntityTypeValue(), 'et1');
+    $entity->setBundleValue('bundle');
+    $this->assertEquals($entity->getBundleValue(), 'bundle');
     $entity->setWebform('webform_entity1');
     $this->assertEquals($entity->getWebform(), 'webform_entity1');
   }

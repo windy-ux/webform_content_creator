@@ -32,7 +32,7 @@ class NumericFieldMapping extends FieldMappingBase {
     return $this->filterWebformFields($webform_id, $supported_types);
   }
 
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition) {
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
     $field_id = $field_definition->getName();
     $field_value = $data[$field_id];
 
