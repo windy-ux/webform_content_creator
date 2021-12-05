@@ -5,7 +5,7 @@ namespace Drupal\webform_content_creator\Plugin\WebformContentCreator\FieldMappi
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
-use Drupal\webform\WebformSubmissionInterface;
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\webform_content_creator\Plugin\FieldMappingBase;
 
 /**
