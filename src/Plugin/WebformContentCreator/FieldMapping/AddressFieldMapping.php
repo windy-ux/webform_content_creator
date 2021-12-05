@@ -33,28 +33,28 @@ class AddressFieldMapping extends FieldMappingBase {
   public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
     $field_id = $field_definition->getName();
     $field_value = $field_definition->getDefaultValue($content)[0];
-
-    if ($webform_element[$field_id]['#type'] == "webform_address") {
-      if (!empty($data[$field_id]['address'])) {
-        $field_value['address_line1'] = $data[$field_id]['address'];
-      }
-      if (!empty($data[$field_id]['address_2'])) {
-        $field_value['address_line2'] = $data[$field_id]['address_2'];
-      }
-      if (!empty($data[$field_id]['city'])) {
-        $field_value['locality'] = $data[$field_id]['city'];
-      }
-      if (!empty($data[$field_id]['state_province'])) {
-        $field_value['administrative_area'] = $data[$field_id]['state_province'];
-      }
-      if (!empty($data[$field_id]['postal_code'])) {
-        $field_value['postal_code'] = $data[$field_id]['postal_code'];
-      }
-      if (!empty($data[$field_id]['country'])) {
-        $field_value['country_code'] = $data[$field_id]['country'];
-      }
+    $is_address = FALSE;
+    if (!empty($data[$field_id]['address'])) {
+      $is_address = TRUE;
+      $field_value['address_line1'] = $data[$field_id]['address'];
     }
-    else {
+    if (!empty($data[$field_id]['address_2'])) {
+      $field_value['address_line2'] = $data[$field_id]['address_2'];
+    }
+    if (!empty($data[$field_id]['city'])) {
+      $field_value['locality'] = $data[$field_id]['city'];
+    }
+    if (!empty($data[$field_id]['state_province'])) {
+      $field_value['administrative_area'] = $data[$field_id]['state_province'];
+    }
+    if (!empty($data[$field_id]['postal_code'])) {
+      $field_value['postal_code'] = $data[$field_id]['postal_code'];
+    }
+    if (!empty($data[$field_id]['country'])) {
+      $field_value['country_code'] = $data[$field_id]['country'];
+    }
+
+    if (!$is_address) {
       $field_value = array_merge($field_value, $data[$field_id]);
     }
 

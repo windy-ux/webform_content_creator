@@ -333,7 +333,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   /**
    * Use a single mapping to set a Content field value.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $initialContent
+   * @param \Drupal\Core\Entity\EntityInterface $initial_content
    *   Content entity being mapped with a webform submission.
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission entity.
@@ -341,9 +341,9 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    *   Content entity fields.
    * @param array $data
    *   Webform submission data.
-   * @param string $encryptionProfile
+   * @param string $encryption_profile
    *   Encryption profile used in Webform encrypt module.
-   * @param string $fieldId
+   * @param string $field_id
    *   Content field id.
    * @param array $mapping
    *   Single mapping between content entity and webform submission.
@@ -353,51 +353,45 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    * @return \Drupal\Core\Entity\EntityInterface
    *   Created content entity.
    */
-  private function mapContentField(EntityInterface $initialContent, WebformSubmissionInterface $webform_submission, array $fields = [], array $data = [], $encryptionProfile = '', $fieldId = '', array $mapping = [], array $attributes = []) {
-    $content = $initialContent;
-    if (!$content->hasField($fieldId) || !is_array($mapping)) {
+  private function mapContentField(EntityInterface $initial_content, WebformSubmissionInterface $webform_submission, array $fields = [], array $data = [], $encryption_profile = '', $field_id = '', array $mapping = [], array $attributes = []) {
+    $content = $initial_content;
+
+    if (!$content->hasField($field_id) || !is_array($mapping)) {
       return $content;
     }
-    if ($attributes[$fieldId][WebformContentCreatorInterface::CUSTOM_CHECK]) {
-      $decValue = WebformContentCreatorUtilities::getDecryptedTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryptionProfile, $webform_submission);
-      if ($decValue === 'true' || $decValue === 'TRUE') {
-        $decValue = TRUE;
-      }
+
+    // Get the field mapping plugin.
+    $field_mapping = \Drupal::service('plugin.manager.webform_content_creator.field_mapping')->getPlugin($attributes[$field_id][WebformContentCreatorInterface::FIELD_MAPPING]);
+    $values = [];
+    $webform_element = [];
+
+    // If the custom check functionality is active then we do need to evaluate
+    // webform fields.
+    if ($attributes[$field_id][WebformContentCreatorInterface::CUSTOM_CHECK]) {
+      $field_value = WebformContentCreatorUtilities::getDecryptedTokenValue($mapping[WebformContentCreatorInterface::CUSTOM_VALUE], $encryption_profile, $webform_submission);
     }
     else {
-      if (!$attributes[$fieldId][WebformContentCreatorInterface::TYPE]) {
-        if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
-          return $content;
-        }
-        $decValue = $this->getWebformSubmissionValue($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
-        if ($fields[$fieldId]->getType() === 'entity_reference' && (!is_array($decValue) && intval($decValue) === 0)) {
-          $content->set($fieldId, []);
-          return $content;
+      if (!$attributes[$field_id][WebformContentCreatorInterface::TYPE]) {
+        $field_value = $this->getWebformSubmissionValue($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryption_profile);
+        if ($fields[$field_id]->getType() === 'entity_reference' && (!is_array($field_value) && intval($field_value) === 0)) {
+          $content->set($field_id, []);
         }
       }
       else {
-        $fieldObject = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]};
-        if ($fieldObject instanceof EntityReferenceFieldItemList) {
-          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
+        $field_object = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]};
+        if ($field_object instanceof EntityReferenceFieldItemList) {
+          $field_value = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->getValue()[0]['target_id'];
         }
         else {
-          $decValue = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
+          $field_value = $webform_submission->{$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]}->value;
         }
+
       }
     }
+    $values[$field_id] = $field_value;
 
-    if ($fields[$fieldId]->getType() == 'datetime') {
-      $decValue = $this->convertTimestamp($decValue, $fields, $fieldId);
-    }
-
-    // Check if field's max length is exceeded.
-    $maxLength = $this->checkMaxFieldSizeExceeded($fields, $fieldId, $decValue);
-    if ($maxLength === 0) {
-      $content->set($fieldId, $decValue);
-    }
-    else {
-      $content->set($fieldId, substr($decValue, 0, $maxLength));
-    }
+    // Map the field type using the selected field mapping.
+    $field_value = $field_mapping->mapEntityField($content, $webform_element, $values, $fields[$field_id], $mapping);
 
     return $content;
   }
