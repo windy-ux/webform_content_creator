@@ -19,11 +19,15 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
 
   const WEBFORM_FIELD = 'webform_field';
 
+  const FIELD_MAPPING = 'mapping';
+
   const CUSTOM_CHECK = 'custom_check';
 
   const CUSTOM_VALUE = 'custom_value';
 
   const FORM_TABLE = 'table';
+
+  const ELEMENTS = 'elements';
 
   /**
    * Plugin field type.
@@ -40,12 +44,20 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
   protected $entityTypeManager;
 
   /**
+   * Field mapping manager.
+   *
+   * @var object
+   */
+  protected $fieldMappingManager;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     $instance = new static();
     $instance->pluginFieldType = $container->get('plugin.manager.field.field_type');
     $instance->entityTypeManager = $container->get('entity_type.manager');
+    $instance->fieldMappingManager = $container->get('plugin.manager.webform_content_creator.field_mapping');
     return $instance;
   }
 
@@ -54,24 +66,26 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form['intro_text'] = [
-      '#markup' => '<p>' . $this->t('You can create content based on webform submission values. In this page, you can do mappings between bundle fields and webform submission values. You may also use tokens in custom text. You must map the required fields, otherwise content will not be created.') . '</p>',
+      '#markup' => '<p>' . $this->t('You can create nodes based on webform submission values. In this page, you can do mappings between content type fields and webform submission values. You may also use tokens in custom text.') . '</p>',
     ];
-    $form['tokens'] = [
-      '#theme' => 'token_tree_link',
-      '#token_types' => ['webform_submission'],
-      '#global_types' => TRUE,
-      '#click_insert' => TRUE,
-      '#show_restricted' => FALSE,
-      '#recursion_limit' => 3,
-      '#text' => $this->t('Browse available tokens'),
-    ];
-    // Construct table with mapping between bundle and webform.
+    if (\Drupal::service('module_handler')->moduleExists('token')) {
+      $form['tokens'] = [
+        '#theme' => 'token_tree_link',
+        '#token_types' => ['webform_submission'],
+        '#global_types' => TRUE,
+        '#click_insert' => TRUE,
+        '#show_restricted' => FALSE,
+        '#recursion_limit' => 3,
+        '#text' => $this->t('Browse available tokens'),
+      ];
+    }
+    // Construct table with mapping between content type and webform.
     $this->constructTable($form);
     return $form;
   }
 
   /**
-   * Constructs table with mapping between webform and bundle.
+   * Constructs table with mapping between webform and content type.
    *
    * @param array $form
    *   Form entity array.
@@ -86,8 +100,8 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
       $entity_type_id = 'node_type';
     }
 
-    $bundleFilteredFieldIds = WebformContentCreatorUtilities::getBundleIds($entity_type_initial_id, $bundle_id);
-    asort($bundleFilteredFieldIds);
+    $bundleFilteredfield_ids = WebformContentCreatorUtilities::getBundleIds($entity_type_initial_id, $bundle_id);
+    asort($bundleFilteredfield_ids);
     $bundleFields = WebformContentCreatorUtilities::bundleFields($entity_type_initial_id, $bundle_id);
     $webform_id = $this->entity->getWebform();
     $webformOptions = WebformContentCreatorUtilities::getWebformElements($webform_id);
@@ -96,6 +110,7 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
     $header = [
       self::BUNDLE_FIELD => $this->t('Bundle field'),
       self::FIELD_TYPE => $this->t('Field type'),
+      self::FIELD_MAPPING => $this->t('Field mapping'),
       self::CUSTOM_CHECK => $this->t('Custom'),
       self::WEBFORM_FIELD => $this->t('Webform field'),
       self::CUSTOM_VALUE => $this->t('Custom text'),
@@ -105,94 +120,91 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
       '#header' => $header,
     ];
 
-    foreach ($bundleFilteredFieldIds as $fieldId) {
+    foreach ($bundleFilteredfield_ids as $field_id) {
       // Checkboxes with bundle fields.
-      $form[self::FORM_TABLE][$fieldId][self::BUNDLE_FIELD] = [
+      $form[self::FORM_TABLE][$field_id][self::BUNDLE_FIELD] = [
         '#type' => 'checkbox',
-        '#default_value' => array_key_exists($fieldId, $attributes),
-        '#title' => $bundleFields[$fieldId]->getLabel() . ' (' . $fieldId . ')',
+        '#default_value' => array_key_exists($field_id, $attributes),
+        '#title' => $bundleFields[$field_id]->getLabel() . ' (' . $field_id . ')',
       ];
 
       // Link to edit field settings.
-      $form[self::FORM_TABLE][$fieldId][self::FIELD_TYPE] = [
+      $form[self::FORM_TABLE][$field_id][self::FIELD_TYPE] = [
         '#type' => 'markup',
-        '#markup' => $fieldTypesDefinitions[$bundleFields[$fieldId]->getType()]['label'],
+        '#markup' => $fieldTypesDefinitions[$bundleFields[$field_id]->getType()]['label'],
       ];
 
-      // Checkbox to select between webform element/property or custom text.
-      $form[self::FORM_TABLE][$fieldId][self::CUSTOM_CHECK] = [
-        '#type' => 'checkbox',
-        '#default_value' => array_key_exists($fieldId, $attributes) ? $attributes[$fieldId][self::CUSTOM_CHECK] : '',
+      // Find available field mappings for the element type.
+      $field_mapping_options = [];
+      $field_mapping_options['default_mapping'] = $this->t('Default');
+      foreach ($this->fieldMappingManager->getFieldMappings($bundleFields[$field_id]->getType()) as $field_mapping) {
+        if ($field_mapping->getId() === 'default_mapping') {
+          continue;
+        }
+        $field_mapping_options[$field_mapping->getId()] = $field_mapping->getLabel();
+      }
+
+      // Select the field mapping.
+      $default_value = array_key_exists($field_id, $attributes) && isset($attributes[$field_id][self::FIELD_MAPPING]) ? $attributes[$field_id][self::FIELD_MAPPING] : '';
+      $form[self::FORM_TABLE][$field_id][self::FIELD_MAPPING] = [
+        '#type' => 'select',
+        '#options' => $field_mapping_options,
+        '#default_value' => $default_value,
         '#states' => [
-          'disabled' => [
-            ':input[name="' . self::FORM_TABLE . '[' . $fieldId . '][' . self::BUNDLE_FIELD . ']"]' => ['checked' => FALSE],
+          'visible' => [
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::BUNDLE_FIELD . ']"]' => ['checked' => TRUE],
           ],
         ],
       ];
 
-      $type = !empty($attributes[$fieldId]) && $attributes[$fieldId]['type'] ? '1' : '0';
+      // Checkbox to select between webform element/property or custom text.
+      $form[self::FORM_TABLE][$field_id][self::CUSTOM_CHECK] = [
+        '#type' => 'checkbox',
+        '#default_value' => array_key_exists($field_id, $attributes) ? $attributes[$field_id][self::CUSTOM_CHECK] : '',
+        '#states' => [
+          'visible' => [
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::BUNDLE_FIELD . ']"]' => ['checked' => TRUE],
+          ],
+        ],
+      ];
+
+      $type = !empty($attributes[$field_id]) && $attributes[$field_id]['type'] ? '1' : '0';
+
       // Select with webform elements and basic properties.
-      $form[self::FORM_TABLE][$fieldId][self::WEBFORM_FIELD] = [
+      $form[self::FORM_TABLE][$field_id][self::WEBFORM_FIELD] = [
         '#type' => 'select',
         '#options' => $webformOptions,
         '#states' => [
           'required' => [
-            ':input[name="' . self::FORM_TABLE . '[' . $fieldId . '][' . self::BUNDLE_FIELD . ']"]' => ['checked' => TRUE],
-            ':input[name="' . self::FORM_TABLE . '[' . $fieldId . '][' . self::CUSTOM_CHECK . ']"]' => ['checked' => FALSE],
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::BUNDLE_FIELD . ']"]' => ['checked' => TRUE],
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::CUSTOM_CHECK . ']"]' => ['checked' => FALSE],
+          ],
+          'visible' => [
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::BUNDLE_FIELD . ']"]' => ['checked' => TRUE],
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::CUSTOM_CHECK . ']"]' => ['checked' => FALSE],
           ],
         ],
       ];
 
-      if (array_key_exists($fieldId, $attributes) && !$attributes[$fieldId][self::CUSTOM_CHECK]) {
-        $form[self::FORM_TABLE][$fieldId][self::WEBFORM_FIELD]['#default_value'] = $type . ',' . $attributes[$fieldId][self::WEBFORM_FIELD];
+      if (array_key_exists($field_id, $attributes) && !$attributes[$field_id][self::CUSTOM_CHECK]) {
+        $form[self::FORM_TABLE][$field_id][self::WEBFORM_FIELD]['#default_value'] = $type . ',' . $attributes[$field_id][self::WEBFORM_FIELD];
       }
 
       // Textarea with custom text (including tokens)
-      $form[self::FORM_TABLE][$fieldId][self::CUSTOM_VALUE] = [
+      $form[self::FORM_TABLE][$field_id][self::CUSTOM_VALUE] = [
         '#type' => 'textarea',
-        '#default_value' => array_key_exists($fieldId, $attributes) ? $attributes[$fieldId][self::CUSTOM_VALUE] : '',
+        '#default_value' => array_key_exists($field_id, $attributes) ? $attributes[$field_id][self::CUSTOM_VALUE] : '',
+        '#states' => [
+          'visible' => [
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::BUNDLE_FIELD . ']"]' => ['checked' => TRUE],
+            ':input[name="' . self::FORM_TABLE . '[' . $field_id . '][' . self::CUSTOM_CHECK . ']"]' => ['checked' => TRUE],
+          ],
+        ],
       ];
     }
 
     // Change table position in page.
     $form[self::FORM_TABLE]['#weight'] = 1;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    parent::validateForm($form, $form_state);
-    $entity_type_initial_id = $this->entity->getEntityTypeValue();
-    $entity_type_id = $this->entity->getEntityTypeValue();
-    $bundle_id = $this->entity->getBundleValue();
-    $bundleFields = WebformContentCreatorUtilities::bundleFields($entity_type_initial_id, $bundle_id);
-    $webform_id = $this->entity->getWebform();
-    $webformElementTypes = WebformContentCreatorUtilities::getWebformElementsTypes($webform_id);
-    // For each table row.
-    foreach ($form_state->getValue(self::FORM_TABLE) as $k => $v) {
-      // Check if a bundle field is selected.
-      if (!$v[self::BUNDLE_FIELD]) {
-        continue;
-      }
-      $args = explode(',', $v[self::WEBFORM_FIELD]);
-      if (empty($args) || count($args) < 2) {
-        continue;
-      }
-      $bundleFieldType = $bundleFields[$k]->getType();
-      $webformOptionType = array_key_exists($args[1], $webformElementTypes) ? $webformElementTypes[$args[1]] : '';
-      if ($bundleFieldType === $webformOptionType) {
-        continue;
-      }
-
-      if ($bundleFieldType === 'email') {
-        $form_state->setErrorByName(self::FORM_TABLE . '][' . $k . '][' . self::WEBFORM_FIELD, $this->t('Incompatible type'));
-      }
-
-      if ($webformOptionType === 'email' && (strpos($bundleFieldType, 'text') === FALSE) && (strpos($bundleFieldType, 'string') === FALSE)) {
-        $form_state->setErrorByName(self::FORM_TABLE . '][' . $k . '][' . self::WEBFORM_FIELD, $this->t('Incompatible type'));
-      }
-    }
   }
 
   /**
@@ -213,6 +225,7 @@ class WebformContentCreatorManageFieldsForm extends EntityForm {
 
       $attributes[$k] = [
         'type' => explode(',', $v[self::WEBFORM_FIELD])[0] === '1',
+        self::FIELD_MAPPING => isset($v[self::FIELD_MAPPING]) ? $v[self::FIELD_MAPPING] : '',
         self::WEBFORM_FIELD => !$v[self::CUSTOM_CHECK] ? explode(',', $v[self::WEBFORM_FIELD])[1] : '',
         self::CUSTOM_CHECK => $v[self::CUSTOM_CHECK],
         self::CUSTOM_VALUE => $v[self::CUSTOM_CHECK] ? $v[self::CUSTOM_VALUE] : '',

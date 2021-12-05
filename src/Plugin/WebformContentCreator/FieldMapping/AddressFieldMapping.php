@@ -60,5 +60,4 @@ class AddressFieldMapping extends FieldMappingBase {
 
     $content->set($field_id, $field_value);
   }
-
 }

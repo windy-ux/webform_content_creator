@@ -369,7 +369,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
         if (!array_key_exists(WebformContentCreatorInterface::WEBFORM_FIELD, $mapping) || !array_key_exists($mapping[WebformContentCreatorInterface::WEBFORM_FIELD], $data)) {
           return $content;
         }
-        $decValue = $this->getDecryptionFromProfile($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
+        $decValue = $this->getWebformSubmissionValue($data[$mapping[WebformContentCreatorInterface::WEBFORM_FIELD]], $encryptionProfile);
         if ($fields[$fieldId]->getType() === 'entity_reference' && (!is_array($decValue) && intval($decValue) === 0)) {
           $content->set($fieldId, []);
           return $content;
