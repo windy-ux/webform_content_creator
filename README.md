@@ -1,35 +1,29 @@
-CONTENTS OF THIS FILE
----------------------
+## CONTENTS OF THIS FILE
 
- * Introduction
- * Requirements
- * Installation
- * Configuration
+ - Introduction
+ - Requirements
+ - Installation
+ - Configuration
 
-INTRODUCTION
-------------
+## INTRODUCTION
 
- * This module provides the ability to create content entities after submitting webforms,
-  and do mappings between the fields of the created content and webform 
+ - This module provides the ability to create content entities after submitting webforms,
+  and do mappings between the fields of the created content and webform
   submission values.
 
-REQUIREMENTS
-------------
+## REQUIREMENTS
 
 This module requires the following modules:
 
- * Webform (https://www.drupal.org/project/webform)
- * Webform Encrypt (https://www.drupal.org/project/webform_encrypt)
-  
-INSTALLATION
-------------
+ - [Webform](https://www.drupal.org/project/webform)
 
- * Install as you would normally install a contributed Drupal module.
+## INSTALLATION
 
-CONFIGURATION
--------------
+ - Install as you would normally install a contributed Drupal module.
 
- * Configure Webform Content Creator entities:
+## CONFIGURATION
+
+ - Configure Webform Content Creator entities:
 
    1. Enable Webform Content Creator module;
    2. Go to Webform Content Creator configuration page;
@@ -49,9 +43,19 @@ CONFIGURATION
       (optionally, you can provide a custom text instead, using available
       tokens).
 
- * Configure the user permissions in Administration » People » Permissions:
+ - Configure the user permissions in Administration » People » Permissions:
 
    - Access Webform content creator configurations
 
      Users with this permission will see the administration menu at the top of
      each page.
+
+## MAINTAINERS
+
+- João Marques (joaomarques736) - <https://www.drupal.org/u/joaomarques736>
+- Ricardo Tenreiro de Sá (ricardotenreiro) - <https://www.drupal.org/u/ricardotenreiro>
+- Nuno Ramos (-nrzr-) - <https://www.drupal.org/u/nrzr>
+- Débora Antunes (dgaspara) - <https://www.drupal.org/u/dgaspara>
+- Miguel Ferreira (Miguelpamferreira) - <https://www.drupal.org/u/miguelpamferreira>
+- Nelson Alves (nsalves) - <https://www.drupal.org/u/nsalves>
+- sara_asb - <https://www.drupal.org/u/sara_asb>

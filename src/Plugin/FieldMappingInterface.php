@@ -24,7 +24,7 @@ interface FieldMappingInterface extends PluginInspectionInterface {
     "webform_tableselect_sort",
     "webform_table_sort",
   ];
-    
+
   const WEBFORM_ENTIY_REFERENCE_ELEMENTS = [
     "entity_autocomplete",
     "webform_entity_checkboxes",
@@ -33,13 +33,13 @@ interface FieldMappingInterface extends PluginInspectionInterface {
     "webform_term_checkboxes",
     "webform_term_select",
   ];
-    
+
   const WEBFORM_TEXT_ELEMENTS = [
     "textarea",
     "textfield",
     "hidden",
   ];
-    
+
   /**
    * Returns whether the mapper supports custom field text.
    *
@@ -69,16 +69,16 @@ interface FieldMappingInterface extends PluginInspectionInterface {
    *   Content being mapped with a webform submission.
    * @param array $webform_element
    *   Webform element
+   * @param FieldDefinitionInterface $field_definition
+   *   Entity field definition.
    * @param array $data
    *   Webform submission data.
-   * @param FieldDefinitionInterface $field_definition
-   *   Entity field defintition.
    * @param array $attributes
    *   Mapping attributes.
    *
    * @return \Drupal\Core\Entity\ContentEntityInterface
    *   Created content item.
    */
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []);
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, FieldDefinitionInterface $field_definition, array $data = [], array $attributes = []);
 
 }

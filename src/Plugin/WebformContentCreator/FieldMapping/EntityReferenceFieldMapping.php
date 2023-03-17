@@ -29,7 +29,7 @@ class EntityReferenceFieldMapping extends FieldMappingBase {
   public function supportsCustomFields() {
     return FALSE;
   }
-  
+
   /**
    * {@inheritdoc}
    */
@@ -38,11 +38,11 @@ class EntityReferenceFieldMapping extends FieldMappingBase {
 
     return $this->filterWebformFields($webform_id, $supported_types);
   }
-  
+
   /**
    * {@inheritdoc}
    */
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, FieldDefinitionInterface $field_definition, array $data = [], array $attributes = []) {
     $field_id = $field_definition->getName();
     $field_value = $data[$field_id];
 

@@ -29,7 +29,7 @@ class BooleanFieldMapping extends FieldMappingBase {
     return $this->filterWebformFields($webform_id, $supported_types);
   }
 
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, FieldDefinitionInterface $field_definition, array $data = [], array $attributes = []) {
     $field_id = $field_definition->getName();
     $field_value = $data[$field_id];
 
@@ -37,7 +37,7 @@ class BooleanFieldMapping extends FieldMappingBase {
     if (!is_bool($field_value)) {
       $field_value = filter_var($field_value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
-	
+
     if (isset($field_value)) {
       $content->set($field_id, $field_value);
     }

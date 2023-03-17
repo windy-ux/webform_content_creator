@@ -69,7 +69,7 @@ abstract class FieldMappingBase extends PluginBase implements FieldMappingInterf
   /**
    * Use a single mapping to set an entity field value.
    */
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, FieldDefinitionInterface $field_definition, array $data = [], array $attributes = []) {
     $field_id = $field_definition->getName();
     $field_value = $data[$field_id];
     $content->set($field_id, $field_value);

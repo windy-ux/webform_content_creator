@@ -391,7 +391,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     $values[$field_id] = $field_value;
 
     // Map the field type using the selected field mapping.
-    $field_value = $field_mapping->mapEntityField($content, $webform_element, $values, $fields[$field_id], $mapping);
+    $field_value = $field_mapping->mapEntityField($content, $webform_element, $fields[$field_id], $values, $mapping);
 
     return $content;
   }
@@ -674,7 +674,7 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
     }
     else {
       $result = \Drupal::service('date.formatter')->format(
-        $datetime->getTimestamp(), 'custom', 
+        $datetime->getTimestamp(), 'custom',
         DateTimeItemInterface::DATE_STORAGE_FORMAT, 'UTC'
       );
     }

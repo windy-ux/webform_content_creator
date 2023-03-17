@@ -37,7 +37,7 @@ class DateTimeFieldMapping extends FieldMappingBase {
     return $this->filterWebformFields($webform_id, $supported_types);
   }
 
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, FieldDefinitionInterface $field_definition, array $data = [], array $attributes = []) {
     $field_id = $field_definition->getName();
     $field_value = $data[$field_id];
 
@@ -69,7 +69,7 @@ class DateTimeFieldMapping extends FieldMappingBase {
     }
     else {
       $result = \Drupal::service('date.formatter')->format(
-        $date_time->getTimestamp(), 'custom', 
+        $date_time->getTimestamp(), 'custom',
         DateTimeItemInterface::DATE_STORAGE_FORMAT, 'UTC'
       );
     }

@@ -40,7 +40,7 @@ class SocialMediaLinksFieldMapping extends FieldMappingBase {
     return $this->filterWebformFields($webform_id, $supported_types);
   }
 
-  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, array $data = [], FieldDefinitionInterface $field_definition, array $attributes = []) {
+  public function mapEntityField(ContentEntityInterface &$content, array $webform_element, FieldDefinitionInterface $field_definition, array $data = [], array $attributes = []) {
     $field_data = [];
     $field_id = $field_definition->getName();
     foreach ($data as $key => $value) {
