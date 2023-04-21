@@ -322,13 +322,11 @@ class WebformContentCreatorUtilities {
    *   Encryption profile.
    * @param \Drupal\webform\WebformSubmissionInterface $webform_submission
    *   Webform submission.
-   * @param string $type
-   *   Token type.
    *
    * @return string
    *   Token value.
    */
-  public static function getDecryptedTokenValue($value, $encryption_profile, WebformSubmissionInterface $webform_submission, $type = self::WEBFORM_SUBMISSION) {
+  public static function getDecryptedTokenValue($value, $encryption_profile, WebformSubmissionInterface $webform_submission) {
     if (empty($value) || empty($webform_submission)) {
       return '';
     }
@@ -339,17 +337,19 @@ class WebformContentCreatorUtilities {
     if (empty($tokens)) {
       return $value;
     }
-    foreach ($tokens[$type] as $val) {
-      $token_value = \Drupal::token()->replace($val, [self::WEBFORM_SUBMISSION => $webform_submission]);
-      if (!empty($encryption_profile)) {
-        // Decrypt single token value.
-        $dec_token_value = self::getDecryptedValue($token_value, $encryption_profile);
+    foreach ($tokens as $types) {
+      foreach ($types as $val) {
+        $token_value = \Drupal::token()->replace($val, [self::WEBFORM_SUBMISSION => $webform_submission], ['clear' => TRUE]);
+        if (!empty($encryption_profile)) {
+          // Decrypt single token value.
+          $dec_token_value = self::getDecryptedValue($token_value, $encryption_profile);
+        }
+        else {
+          $dec_token_value = $token_value;
+        }
+        $token_keys[] = $val;
+        $token_values[] = $dec_token_value;
       }
-      else {
-        $dec_token_value = $token_value;
-      }
-      $token_keys[] = $val;
-      $token_values[] = $dec_token_value;
     }
     if (empty($token_values)) {
       return $value;
