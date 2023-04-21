@@ -41,7 +41,7 @@ class DateTimeFieldMapping extends FieldMappingBase {
     $field_id = $field_definition->getName();
     $field_value = $data[$field_id];
 
-    if ($field_definition->getType() == "datetime") {
+    if (($field_definition->getType() == "datetime") && ($field_value != 0)) {
       $field_data = $this->convertTimestamp($field_value, $field_definition);
       $content->set($field_id, $field_data);
     }

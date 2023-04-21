@@ -52,6 +52,7 @@ class WebformContentCreatorUtilities {
       'details',
       'fieldset',
       'webform_flexbox',
+      'webform_card'
     ];
 
     $result = [];
