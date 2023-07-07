@@ -52,6 +52,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
  *     "field_title",
  *     "use_encrypt",
  *     "encryption_profile",
+ *     "redirect_to_node",
+ *     "redirect_to_node_message",
  *     "sync_content",
  *     "sync_content_delete",
  *     "sync_content_node_field",
@@ -115,6 +117,20 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
    * @var array
    */
   protected $elements;
+
+  /**
+   * Redirect to new node.
+   *
+   * @var bool
+   */
+  protected $redirect_to_node;
+
+  /**
+   * Redirect to new node message.
+   *
+   * @var string
+   */
+  protected $redirect_to_node_message;
 
   /**
    * Use encryption.
@@ -263,6 +279,27 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
   public function getSyncDeleteContentCheck() {
     return $this->get(WebformContentCreatorInterface::SYNC_CONTENT_DELETE);
   }
+
+  /**
+   * Redirect to new node after creation.
+   *
+   * @return bool
+   *   True, when the redirection is on. Otherwise, returns false.
+   */
+  public function getRedirectToNodeContentCheck() {
+    return $this->get(WebformContentCreatorInterface::REDIRECT_TO_NODE);
+  }
+
+   /**
+   * Get message to be shown when redirect to new node.
+   *
+   * @return string
+   *   Message after redirect
+   */
+  public function getRedirectToNodeMessageContentField() {
+    return $this->get(WebformContentCreatorInterface::REDIRECT_TO_NODE_MESSAGE);
+  }
+
 
   /**
    * Get content field in which the webform submission id will be stored.
@@ -448,6 +485,11 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred when creating a new content.'));
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
+        
+    if ($this->getRedirectToNodeContentCheck()) {
+      $this->messenger()->addMessage($this->getRedirectToNodeMessageContentField());
+    }
+
     $nid = $content->id();
     $response = new RedirectResponse("/node/$nid");
     $response->send();
@@ -527,6 +569,11 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred while updating content.'));
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
+        
+    if ($this->getRedirectToNodeContentCheck()) {
+      $this->messenger()->addMessage($this->getRedirectToNodeMessageContentField());
+    }
+
     $nid = $content->id();
     $response = new RedirectResponse("/node/$nid");
     $response->send();

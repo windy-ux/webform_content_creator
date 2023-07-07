@@ -128,6 +128,34 @@ class WebformContentCreatorForm extends EntityForm {
       '#description' => $this->t('Perform synchronization between webform submission and respective content when one is edited. When a webform submission is edited, the resultant content is synchronized with the new values.'),
       '#default_value' => $this->entity->getSyncEditContentCheck(),
     ];
+    
+    $form['redirect_to_node'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('After submiting form redirect to the new created node.'),
+      '#description' => $this->t('After submiting form redirect to the new created node.'),
+      '#default_value' => $this->entity->getRedirectToNodeContentCheck(),
+    ];
+
+    $form['redirect_to_node_message'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Status message when redirecting to new node'),
+      '#maxlength' => 255,
+      '#default_value' => $this->entity->getRedirectToNodeMessageContentField(),
+      '#help' => $this->t('After redirecting to newly created node this status message is shown to the user.'),
+      '#states' => [
+        'visible' =>
+          [
+            [
+              ':input[name="redirect_to_node"]' => ['checked' => TRUE],
+            ],
+          ],
+        'required' =>
+          [
+            ':input[name="redirect_to_node"]' => ['checked' => TRUE],
+          ],
+      ],
+    ];
+
 
     $form['sync_content_delete'] = [
       '#type' => 'checkbox',

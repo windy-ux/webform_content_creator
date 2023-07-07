@@ -27,6 +27,10 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
 
   const TYPE = 'type';
 
+  const REDIRECT_TO_NODE = "redirect_to_node";
+  
+  const REDIRECT_TO_NODE_MESSAGE= "redirect_to_node_message";
+
   const SYNC_CONTENT = 'sync_content';
 
   const SYNC_CONTENT_DELETE = 'sync_content_delete';
@@ -136,6 +140,22 @@ interface WebformContentCreatorInterface extends ConfigEntityInterface {
    *   true, when the synchronization is used. Otherwise, returns false.
    */
   public function getSyncDeleteContentCheck();
+  
+   /**
+   * Redirect to new node after creation.
+   *
+   * @return bool
+   *   True, when the redirection is on. Otherwise, returns false.
+   */
+  public function getRedirectToNodeContentCheck();
+
+  /**
+   * Get message to be shown when redirect to new node.
+   *
+   * @return string
+   *   Message after redirect
+   */
+  public function getRedirectToNodeMessageContentField();
 
   /**
    * Get content field in which the webform submission id will be stored.

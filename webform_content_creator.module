@@ -152,6 +152,12 @@ function webform_content_creator_update_8001() {
       $key->set('sync_content_field', $sync_content_field);
     }
 
+    // Update message after redirect to new node.
+    $redirect_to_node_message = $key->get('redirect_to_node_message');
+    if (!empty($redirect_to_node_message)) {
+      $key->set('redirect_to_node_message', $redirect_to_node_message);
+    }
+    
     // As field_title is not shown anymore in Manage Fields form, we need to pass it to Title field.
     $field_title = $key->get('field_title');
     if (empty($field_title)) {
