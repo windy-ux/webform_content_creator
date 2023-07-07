@@ -13,6 +13,7 @@ use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\Component\Utility\Html;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Defines the Webform Content Creator entity.
@@ -447,6 +448,10 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred when creating a new content.'));
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
+    $nid = $content->id();
+    $response = new RedirectResponse("/node/$nid");
+    $response->send();
+
     return $result;
   }
 
@@ -522,6 +527,9 @@ class WebformContentCreatorEntity extends ConfigEntityBase implements WebformCon
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($this->t('A problem occurred while updating content.'));
       \Drupal::logger(WebformContentCreatorInterface::WEBFORM_CONTENT_CREATOR)->error($e->getMessage());
     }
+    $nid = $content->id();
+    $response = new RedirectResponse("/node/$nid");
+    $response->send();
 
     return $result;
 
